@@ -11,7 +11,7 @@ import (
     "edumatch/config"
 )
 
-// InitPostgres creates a connection pool for PostgreSQL using the DSN from config.
+
 func InitPostgres(cfg *config.Config) *pgxpool.Pool {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
@@ -20,7 +20,7 @@ func InitPostgres(cfg *config.Config) *pgxpool.Pool {
     if err != nil {
         log.Fatalf("Unable to connect to PostgreSQL: %v", err)
     }
-    // Verify connection
+
     if err := pool.Ping(ctx); err != nil {
         log.Fatalf("PostgreSQL ping failed: %v", err)
     }
@@ -28,7 +28,6 @@ func InitPostgres(cfg *config.Config) *pgxpool.Pool {
     return pool
 }
 
-// InitRedis creates a Redis client using address and password from config.
 func InitRedis(cfg *config.Config) *redis.Client {
     rdb := redis.NewClient(&redis.Options{
         Addr:     cfg.RedisAddr,

@@ -112,10 +112,9 @@ func TestProjectService_List(t *testing.T) {
     cfg := &config.Config{AccessTokenTTLMinutes: 15, RefreshExpiryDays: 7}
     svc := NewProjectService(repo, cfg, nil)
     ctx := context.Background()
-    // create two projects
+
     svc.Create(ctx, &domain.Project{OwnerID: 1, Title: "P1", IsOpen: true})
     svc.Create(ctx, &domain.Project{OwnerID: 2, Title: "P2", IsOpen: false})
-    // list only open projects for owner 1
     filter := repository.ProjectFilter{OwnerID: 1, OpenOnly: true}
     list, err := svc.List(ctx, filter)
     if err != nil {

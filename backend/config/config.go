@@ -15,23 +15,23 @@ type Config struct {
     RedisPassword         string
     JWTSecret             string
     RefreshSecret         string
-    AccessTokenTTLMinutes int // access token TTL in minutes
-    RefreshExpiryDays     int // refresh token TTL in days
+    AccessTokenTTLMinutes int 
+    RefreshExpiryDays     int 
 }
 
 var AppConfig *Config
 
 func Load() {
-    // Load .env file if present
+    // Load .env 
     _ = godotenv.Load()
-    // Helper to get env with fallback
+
     getEnv := func(key, fallback string) string {
         if value, exists := os.LookupEnv(key); exists {
             return value
         }
         return fallback
     }
-    // Parse integer values safely
+
     parseInt := func(key string, fallback int) int {
         str := getEnv(key, "")
         if str == "" {
@@ -61,18 +61,15 @@ func (c *Config) GetRedisOptions() *RedisOptions {
     return &RedisOptions{Addr: c.RedisAddr, Password: c.RedisPassword}
 }
 
-// Simple struct for passing Redis options to callers
 type RedisOptions struct {
     Addr     string
     Password string
 }
 
-// Helper to get server address string for Gin
 func (c *Config) ServerAddress() string {
     return ":" + c.ServerPort
 }
 
-// Helper to get JWT expiration duration
 func (c *Config) AccessTokenExpiry() time.Duration {
     return time.Duration(c.AccessTokenTTLMinutes) * time.Minute
 }

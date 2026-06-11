@@ -7,21 +7,19 @@ import (
 
 )
 
-// Claims for access token
 type AccessClaims struct {
     UserID int64 `json:"user_id"`
     jwt.RegisteredClaims
 }
 
-// Claims for refresh token
 type RefreshClaims struct {
     UserID int64 `json:"user_id"`
     jwt.RegisteredClaims
 }
 
-// GenerateAccessToken
+
 func GenerateAccessToken(cfg *config.Config, userID int64) (string, error) {
-    // TTL in minutes from config
+
     ttl := time.Duration(cfg.AccessTokenTTLMinutes) * time.Minute
     now := time.Now()
     claims := AccessClaims{
@@ -35,7 +33,6 @@ func GenerateAccessToken(cfg *config.Config, userID int64) (string, error) {
     return token.SignedString([]byte(cfg.JWTSecret))
 }
 
-// GenerateRefreshToken
 func GenerateRefreshToken(cfg *config.Config, userID int64) (string, error) {
     ttl := cfg.RefreshTokenExpiry()
     now := time.Now()
@@ -50,7 +47,6 @@ func GenerateRefreshToken(cfg *config.Config, userID int64) (string, error) {
     return token.SignedString([]byte(cfg.RefreshSecret))
 }
 
-// ValidateAccessToken
 func ValidateAccessToken(cfg *config.Config, tokenStr string) (int64, error) {
     token, err := jwt.ParseWithClaims(tokenStr, &AccessClaims{}, func(t *jwt.Token) (any, error) {
         if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -67,7 +63,6 @@ func ValidateAccessToken(cfg *config.Config, tokenStr string) (int64, error) {
     return 0, jwt.ErrTokenInvalidClaims
 }
 
-// ValidateRefreshToken
 func ValidateRefreshToken(cfg *config.Config, tokenStr string) (int64, error) {
     token, err := jwt.ParseWithClaims(tokenStr, &RefreshClaims{}, func(t *jwt.Token) (any, error) {
         if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {

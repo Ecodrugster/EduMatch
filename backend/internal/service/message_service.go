@@ -12,7 +12,6 @@ import (
     "edumatch/internal/repository"
 )
 
-// MessageService provides business logic for chat messages.
 type MessageService struct {
     repo    repository.MessageRepo
     cfg     *config.Config
