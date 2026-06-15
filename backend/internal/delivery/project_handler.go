@@ -2,7 +2,9 @@ package delivery
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 
 	"edumatch/internal/domain"
 	"edumatch/internal/repository"
@@ -11,8 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetProjectsHandle
-func GetProjectsHandler(c *gin.Context, svc *service.ProjectService) {
+// GetMyProjectsHandler handles fetching projects owned by the current user
+func GetMyProjectsHandler(c *gin.Context, svc *service.ProjectService) {
 	userIDStr, _ := c.Get("userID")
 	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
 	filter := repository.ProjectFilter{OwnerID: userID}
@@ -22,6 +24,70 @@ func GetProjectsHandler(c *gin.Context, svc *service.ProjectService) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"projects": projects})
+}
+
+type ProjectResponse struct {
+	*domain.Project
+	MatchScore int `json:"match_score"`
+}
+
+// GetProjectsHandler handles fetching projects with global filtering and matching
+func GetProjectsHandler(c *gin.Context, svc *service.ProjectService, userSvc *service.UserService) {
+	filter := repository.ProjectFilter{}
+
+	if title := c.Query("title"); title != "" {
+		filter.TitleContains = title
+	}
+	if skillsStr := c.Query("skills"); skillsStr != "" {
+		skills := strings.Split(skillsStr, ",")
+		for i := range skills {
+			skills[i] = strings.TrimSpace(skills[i])
+		}
+		filter.Skills = skills
+	}
+	if openOnly := c.Query("open_only"); openOnly == "true" {
+		filter.OpenOnly = true
+	}
+
+	projects, err := svc.List(c.Request.Context(), filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	userIDStr, _ := c.Get("userID")
+	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+	
+	userProfile, err := userSvc.GetProfile(c.Request.Context(), userID)
+	var userSkills []string
+	if err == nil && userProfile != nil {
+		userSkills = userProfile.Skills
+	}
+
+	var response []ProjectResponse
+	for _, p := range projects {
+		matchScore := 0
+		if len(p.SkillsRequired) > 0 {
+			matched := 0
+			for _, reqSkill := range p.SkillsRequired {
+				for _, userSkill := range userSkills {
+					if strings.EqualFold(reqSkill, userSkill) {
+						matched++
+						break
+					}
+				}
+			}
+			matchScore = int((float64(matched) / float64(len(p.SkillsRequired))) * 100)
+		}
+		response = append(response, ProjectResponse{Project: p, MatchScore: matchScore})
+	}
+
+	// Sort by match score descending
+	sort.Slice(response, func(i, j int) bool {
+		return response[i].MatchScore > response[j].MatchScore
+	})
+
+	c.JSON(http.StatusOK, gin.H{"projects": response})
 }
 
 // CreateProjectHandler

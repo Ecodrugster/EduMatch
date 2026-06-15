@@ -9,23 +9,46 @@ import (
     "edumatch/internal/service"
 )
 
-// CreateMessageHandler
-func CreateMessageHandler(c *gin.Context, svc *service.MessageService) {
-    var in struct {
-        ProjectID int64  `json:"project_id" binding:"required"`
-        SenderID  int64  `json:"sender_id" binding:"required"`
-        Content   string `json:"content" binding:"required"`
-    }
-    if err := c.ShouldBindJSON(&in); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+import "github.com/gorilla/websocket"
+import "edumatch/internal/delivery/ws"
+
+var upgrader = websocket.Upgrader{
+    ReadBufferSize:  1024,
+    WriteBufferSize: 1024,
+    CheckOrigin: func(r *http.Request) bool {
+        return true
+    },
+}
+
+// ServeWS handles websocket requests from the peer.
+func ServeWS(hub *ws.Hub, c *gin.Context) {
+    projectID, err := strconv.ParseInt(c.Param("project_id"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
         return
     }
-    msg := &domain.Message{ProjectID: in.ProjectID, SenderID: in.SenderID, Content: in.Content}
-    if err := svc.Create(c.Request.Context(), msg); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+    // Assuming AuthMiddleware sets userID in context
+    userIDStr := c.GetString("userID")
+    userID, _ := strconv.ParseInt(userIDStr, 10, 64)
+
+    conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
         return
     }
-    c.JSON(http.StatusCreated, gin.H{"message": msg})
+    client := &ws.Client{
+        Hub:       hub,
+        Conn:      conn,
+        Send:      make(chan *domain.Message, 256),
+        ProjectID: projectID,
+        UserID:    userID,
+    }
+    client.Hub.Register <- client
+
+    // Allow collection of memory referenced by the caller by doing all work in
+    // new goroutines.
+    go client.WritePump()
+    go client.ReadPump()
 }
 
 // ListMessagesHandler

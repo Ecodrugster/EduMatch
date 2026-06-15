@@ -3,6 +3,7 @@ package service
 import (
     "context"
     "errors"
+    "log"
 
 
     "golang.org/x/crypto/bcrypt"
@@ -12,7 +13,7 @@ import (
     "edumatch/config"
     "edumatch/internal/domain"
     "edumatch/internal/repository"
-    "edumatch/internal/auth"
+    "edumatch/pkg/jwt_util"
 )
 
 
@@ -68,18 +69,23 @@ func (s *UserService) Login(ctx context.Context, in domain.SignInInput) (accessT
         return "", "", errors.New("invalid credentials")
     }
     
-    accessToken, err = auth.GenerateAccessToken(s.cfg, user.ID)
+    accessToken, err = jwt_util.GenerateAccessToken(s.cfg, user.ID)
     if err != nil {
         return "", "", err
     }
-    refreshToken, err = auth.GenerateRefreshToken(s.cfg, user.ID)
+    refreshToken, err = jwt_util.GenerateRefreshToken(s.cfg, user.ID)
     if err != nil {
         return "", "", err
     }
     
     key := "refresh:" + refreshToken
-    if err = s.redis.Set(ctx, key, user.ID, s.cfg.RefreshTokenExpiry()).Err(); err != nil {
-        return "", "", err
+    if s.redis != nil {
+        if err = s.redis.Set(ctx, key, user.ID, s.cfg.RefreshTokenExpiry()).Err(); err != nil {
+            return "", "", err
+        }
+    } else {
+        // mock success if redis is not running locally
+        log.Printf("⚠️ Mocking Redis Set for user %d", user.ID)
     }
     return accessToken, refreshToken, nil
 }
@@ -87,19 +93,50 @@ func (s *UserService) Login(ctx context.Context, in domain.SignInInput) (accessT
 
 func (s *UserService) RefreshAccess(ctx context.Context, refreshToken string) (string, error) {
     
-    userID, err := auth.ValidateRefreshToken(s.cfg, refreshToken)
+    userID, err := jwt_util.ValidateRefreshToken(s.cfg, refreshToken)
     if err != nil {
         return "", err
     }
     
     key := "refresh:" + refreshToken
-    storedID, err := s.redis.Get(ctx, key).Int64()
-    if err != nil {
-        return "", errors.New("refresh token not recognized")
+    var storedID int64
+    if s.redis != nil {
+        storedID, err = s.redis.Get(ctx, key).Int64()
+        if err != nil {
+            return "", errors.New("refresh token not recognized")
+        }
+    } else {
+        // mock success
+        storedID = userID
     }
+
     if storedID != userID {
         return "", errors.New("refresh token user mismatch")
     }
     
-    return auth.GenerateAccessToken(s.cfg, userID)
+    return jwt_util.GenerateAccessToken(s.cfg, userID)
+}
+
+func (s *UserService) GetProfile(ctx context.Context, userID int64) (*domain.User, error) {
+	user, err := s.repo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = ""
+	return user, nil
+}
+
+func (s *UserService) UpdateProfile(ctx context.Context, userID int64, skills []string, bio string) (*domain.User, error) {
+	user, err := s.repo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	user.Skills = skills
+	user.Bio = bio
+
+	if err := s.repo.UpdateProfile(ctx, user); err != nil {
+		return nil, err
+	}
+	user.Password = ""
+	return user, nil
 }

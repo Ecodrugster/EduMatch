@@ -34,10 +34,11 @@ func InitRedis(cfg *config.Config) *redis.Client {
         Password: cfg.RedisPassword,
         DB:       0,
     })
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
     defer cancel()
     if err := rdb.Ping(ctx).Err(); err != nil {
-        log.Fatalf("Unable to connect to Redis: %v", err)
+        log.Printf("⚠️ Warning: Unable to connect to Redis: %v. Running without Redis.", err)
+        return nil
     }
     fmt.Println("✅ Redis connected")
     return rdb

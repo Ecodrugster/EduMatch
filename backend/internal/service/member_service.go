@@ -25,7 +25,7 @@ func NewMemberService(repo repository.MemberRepo, cfg *config.Config, redisClien
 
 func (s *MemberService) Add(ctx context.Context, m *domain.Member) error {
     if err := s.validate.Struct(m); err != nil {return err}
-    m.JoinedAt = time.Now().UTC().Format(time.RFC3339)
+    m.JoinedAt = time.Now().UTC()
     return s.repo.Add(ctx, m)
 }
 

@@ -13,14 +13,16 @@ import (
 func CreateApplicationHandler(c *gin.Context, svc *service.ApplicationService) {
     var in struct {
         ProjectID int64  `json:"project_id" binding:"required"`
-        UserID    int64  `json:"user_id" binding:"required"`
         Message   string `json:"message" binding:"required"`
     }
     if err := c.ShouldBindJSON(&in); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-    app := &domain.Application{ProjectID: in.ProjectID, UserID: in.UserID, Message: in.Message, Status: "pending"}
+    userIDStr, _ := c.Get("userID")
+    userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+
+    app := &domain.Application{ProjectID: in.ProjectID, UserID: userID, Message: in.Message, Status: "pending"}
     if err := svc.Create(c.Request.Context(), app); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
@@ -40,7 +42,7 @@ func GetApplicationHandler(c *gin.Context, svc *service.ApplicationService) {
 }
 
 // UpdateApplicationStatusHandler
-func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationService) {
+func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationService, memberSvc *service.MemberService) {
     id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
     var in struct {
         Status string `json:"status" binding:"required"`
@@ -49,22 +51,50 @@ func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationServ
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
+    
+    app, err := svc.Get(c.Request.Context(), id)
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "application not found"})
+        return
+    }
+
     if err := svc.UpdateStatus(c.Request.Context(), id, in.Status); err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
+
+    if in.Status == "approved" && app.Status != "approved" {
+        memberSvc.Add(c.Request.Context(), &domain.Member{
+            ProjectID: app.ProjectID,
+            UserID:    app.UserID,
+        })
+    }
+
     c.Status(http.StatusNoContent)
 }
 
 // ListApplicationsHandler
 func ListApplicationsHandler(c *gin.Context, svc *service.ApplicationService) {
-    // Expect userID from auth middleware
-    userIDStr, _ := c.Get("userID")
-    userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
-    apps, err := svc.ListByUser(c.Request.Context(), userID)
+    var apps []*domain.Application
+    var err error
+
+    if projIDStr := c.Query("project_id"); projIDStr != "" {
+        projectID, _ := strconv.ParseInt(projIDStr, 10, 64)
+        apps, err = svc.ListByProject(c.Request.Context(), projectID)
+    } else {
+        userIDStr, _ := c.Get("userID")
+        userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+        apps, err = svc.ListByUser(c.Request.Context(), userID)
+    }
+
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
+    }
+    
+    // Ensure we don't return null for apps slice to prevent frontend crashes
+    if apps == nil {
+        apps = []*domain.Application{}
     }
     c.JSON(http.StatusOK, gin.H{"applications": apps})
 }

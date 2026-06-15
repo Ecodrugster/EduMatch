@@ -11,8 +11,9 @@ type AccessTokenPayload = {
 interface AuthContextProps {
   accessToken: string | null;
   userId: number | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  isInitializing: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -20,6 +21,27 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // attempt silent refresh on mount
+  useEffect(() => {
+    const rToken = localStorage.getItem('refresh_token');
+    if (!rToken) {
+      setIsInitializing(false);
+      return;
+    }
+    axiosInstance.post('/auth/refresh', { refresh_token: rToken })
+      .then(res => {
+        setAccessToken(res.data.access_token);
+      })
+      .catch(() => {
+        setAccessToken(null);
+        localStorage.removeItem('refresh_token');
+      })
+      .finally(() => {
+        setIsInitializing(false);
+      });
+  }, []);
 
   // decode token when it changes
   useEffect(() => {
@@ -31,24 +53,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [accessToken]);
 
-  const login = async (username: string, password: string) => {
-    const response = await axiosInstance.post('/auth/login', { username, password });
-    // backend returns access token in body and sets refresh token in HttpOnly cookie
+  const login = async (email: string, password: string) => {
+    const response = await axiosInstance.post('/auth/login', { email, password });
     setAccessToken(response.data.access_token);
+    localStorage.setItem('refresh_token', response.data.refresh_token);
   };
 
   const logout = () => {
     setAccessToken(null);
     setUserId(null);
-    // optionally call backend logout endpoint to clear cookie
+    localStorage.removeItem('refresh_token');
+    // optionally call backend logout endpoint
     axiosInstance.post('/auth/logout').catch(() => {});
   };
 
   // attach interceptor to include access token and handle refresh
   useEffect(() => {
     const requestInterceptor = axiosInstance.interceptors.request.use(config => {
-      if (accessToken) {
-        config.headers = { ...config.headers, Authorization: `Bearer ${accessToken}` };
+      if (accessToken && config.headers) {
+        config.headers.set('Authorization', `Bearer ${accessToken}`);
       }
       return config;
     });
@@ -57,13 +80,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       res => res,
       async err => {
         if (err.response?.status === 401 && accessToken) {
-          // try to refresh token using HttpOnly cookie
+          const rToken = localStorage.getItem('refresh_token');
+          if (!rToken) {
+            logout();
+            return Promise.reject(err);
+          }
           try {
-            const refreshRes = await axiosInstance.post('/auth/refresh');
+            const refreshRes = await axiosInstance.post('/auth/refresh', { refresh_token: rToken });
             const newAccess = refreshRes.data.access_token;
             setAccessToken(newAccess);
             // retry original request
-            err.config.headers.Authorization = `Bearer ${newAccess}`;
+            if (err.config.headers) {
+              err.config.headers.set('Authorization', `Bearer ${newAccess}`);
+            }
             return axiosInstance.request(err.config);
           } catch (e) {
             logout();
@@ -81,7 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [accessToken]);
 
   return (
-    <AuthContext.Provider value={{ accessToken, userId, login, logout }}>
+    <AuthContext.Provider value={{ accessToken, userId, login, logout, isInitializing }}>
       {children}
     </AuthContext.Provider>
   );

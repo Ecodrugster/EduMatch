@@ -1,12 +1,13 @@
 export interface Project {
   id: number;
-  ownerId: number;
+  owner_id: number;
   title: string;
   description?: string;
-  skillsRequired: string[];
-  isOpen?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  skills_required: string[];
+  is_open?: boolean;
+  match_score?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface User {

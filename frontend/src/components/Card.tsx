@@ -1,59 +1,6 @@
 import React from 'react';
-import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { Project } from '../types';
-
-const CardContainer = styled.div`
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin: 1rem;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
-  }
-`;
-
-const Title = styled.h3`
-  margin: 0 0 0.5rem 0;
-  color: #e0f7fa;
-`;
-
-const Description = styled.p`
-  color: #cfd8dc;
-  margin: 0 0 0.5rem 0;
-`;
-
-const Skills = styled.ul`
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-`;
-
-const SkillItem = styled.li`
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  color: #fafafa;
-`;
-
-const DeleteButton = styled.button`
-  background: #ff5252;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.3rem 0.6rem;
-  cursor: pointer;
-  margin-top: 1rem;
-  &:hover {
-    background: #d32f2f;
-  }
-`;
 
 interface CardProps {
   project: Project;
@@ -62,8 +9,11 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
+  const navigate = useNavigate();
+
   const handleClick = () => {
     if (onSelect) onSelect(project);
+    navigate(`/projects/${project.id}`);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -71,19 +21,41 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
     if (onDelete) onDelete();
   };
 
-    return (
-        <CardContainer onClick={handleClick} role="button">
-            <Title>{project.title}</Title>
-            <Description>{project.description}</Description>
-            {project.skillsRequired && project.skillsRequired.length > 0 && (
-                <Skills>
-                    {project.skillsRequired.map((skill, idx) => (
-                        <SkillItem key={idx}>{skill}</SkillItem>
-                    ))}
-                </Skills>
-            )}
-            {/* Delete button */}
-            <DeleteButton onClick={handleDelete}>Удалить</DeleteButton>
-        </CardContainer>
-    );
+  return (
+    <div 
+      onClick={handleClick} 
+      role="button"
+      className="relative bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+    >
+      {project.match_score !== undefined && (
+        <div className={`absolute top-4 right-4 px-2 py-1 rounded text-xs font-bold ${
+          project.match_score >= 80 ? 'bg-green-500 text-white' : 
+          project.match_score >= 50 ? 'bg-yellow-500 text-gray-900' : 'bg-gray-500 text-white'
+        }`}>
+          {project.match_score >= 80 ? '🔥 ' : ''}{project.match_score}% Совпадение
+        </div>
+      )}
+      <h3 className="m-0 mb-2 text-cyan-100 pr-24">{project.title}</h3>
+      <p className="text-gray-300 m-0 mb-2">{project.description}</p>
+      {project.skills_required && project.skills_required.length > 0 && (
+        <ul className="list-none p-0 flex flex-wrap gap-2">
+          {project.skills_required.map((skill, idx) => (
+            <li 
+              key={idx}
+              className="bg-white/20 px-2 py-1 rounded text-sm text-gray-50"
+            >
+              {skill}
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* Delete button */}
+      <button 
+        onClick={handleDelete}
+        className="mt-4 bg-red-500 text-white border-none rounded px-3 py-1 cursor-pointer hover:bg-red-600 transition-colors"
+      >
+        Удалить
+      </button>
+    </div>
+  );
 };

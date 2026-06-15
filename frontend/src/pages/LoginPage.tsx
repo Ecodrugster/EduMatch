@@ -1,68 +1,13 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../components/ToastProvider';
 
 type FormValues = {
-  username: string;
+  email: string;
   password: string;
 };
-
-const Container = styled.div`
-  display: flex;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #2c3e50, #4ca1af);
-`;
-
-const Card = styled.div`
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  width: 320px;
-`;
-
-const Title = styled.h2`
-  margin: 0 0 1rem 0;
-  color: #e0f7fa;
-  text-align: center;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  border: none;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  ::placeholder { color: #cfd8dc; }
-`;
-
-const ErrorMsg = styled.span`
-  color: #ff6b6b;
-  font-size: 0.85rem;
-  display: block;
-  margin-bottom: 0.5rem;
-`;
-
-const Button = styled.button`
-  width: 100%;
-  padding: 0.6rem;
-  border: none;
-  border-radius: 4px;
-  background: #00bcd4;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
-  &:hover { background: #0097a7; }
-`;
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -78,36 +23,45 @@ export default function LoginPage() {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      await login(data.username, data.password);
+      await login(data.email, data.password);
       // redirect to the page they wanted or default
       const from = (location.state as any)?.from?.pathname || '/projects';
       navigate(from, { replace: true });
     } catch (e: any) {
-      // backend returns 401 with message
-      addToast(e?.response?.data?.message || 'Ошибка входа', 'error');
-      setError('username', { type: 'manual', message: 'Неправильные данные' });
+      // backend returns 401 with error
+      addToast(e?.response?.data?.error || 'Ошибка входа', 'error');
+      setError('email', { type: 'manual', message: 'Неправильные данные' });
     }
   };
 
   return (
-    <Container>
-      <Card>
-        <Title>Вход в EduMatch</Title>
+    <div className="flex min-h-screen justify-center items-center bg-gradient-to-br from-gray-800 to-teal-700">
+      <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl shadow-2xl w-80">
+        <h2 className="m-0 mb-4 text-cyan-100 text-center text-2xl font-bold">Вход в EduMatch</h2>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Input
-            placeholder="Логин"
-            {...register('username', { required: 'Введите логин' })}
+          <input
+            className="w-full p-2 mb-2 border-none rounded bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            placeholder="Email"
+            type="email"
+            {...register('email', { required: 'Введите email' })}
           />
-          {errors.username && <ErrorMsg>{errors.username.message}</ErrorMsg>}
-          <Input
+          {errors.email && <span className="text-red-400 text-sm block mb-2">{errors.email.message}</span>}
+          <input
+            className="w-full p-2 mb-2 border-none rounded bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
             type="password"
             placeholder="Пароль"
             {...register('password', { required: 'Введите пароль' })}
           />
-          {errors.password && <ErrorMsg>{errors.password.message}</ErrorMsg>}
-          <Button type="submit" disabled={isSubmitting}>Войти</Button>
+          {errors.password && <span className="text-red-400 text-sm block mb-2">{errors.password.message}</span>}
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full p-2.5 border-none rounded bg-cyan-500 text-white font-bold cursor-pointer transition-colors duration-200 hover:bg-cyan-600 disabled:opacity-50"
+          >
+            Войти
+          </button>
         </form>
-      </Card>
-    </Container>
+      </div>
+    </div>
   );
 }

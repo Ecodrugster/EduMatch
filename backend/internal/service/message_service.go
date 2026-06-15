@@ -26,7 +26,7 @@ func NewMessageService(repo repository.MessageRepo, cfg *config.Config, redisCli
 // Create stores a new message.
 func (s *MessageService) Create(ctx context.Context, m *domain.Message) error {
     if err := s.validate.Struct(m); err != nil {return err}
-    m.SentAt = time.Now().UTC().Format(time.RFC3339)
+    m.SentAt = time.Now().UTC()
     return s.repo.Create(ctx, m)
 }
 

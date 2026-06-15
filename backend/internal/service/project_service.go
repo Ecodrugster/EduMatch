@@ -30,7 +30,7 @@ func (s *ProjectService) Create(ctx context.Context, p *domain.Project) error {
         return err
     }
    
-    now := time.Now().Format(time.RFC3339)
+    now := time.Now()
     p.CreatedAt = now
     p.UpdatedAt = now
     p.IsOpen = true
@@ -47,7 +47,7 @@ func (s *ProjectService) Update(ctx context.Context, p *domain.Project) error {
     if err := s.validate.Struct(p); err != nil {
         return err
     }
-    p.UpdatedAt = time.Now().Format(time.RFC3339)
+    p.UpdatedAt = time.Now()
     return s.repo.Update(ctx, p)
 }
 

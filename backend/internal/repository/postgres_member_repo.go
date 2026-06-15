@@ -27,7 +27,7 @@ func (r *postgresMemberRepo) Add(ctx context.Context, m *domain.Member) error {
     if err != nil {
         return err
     }
-    m.JoinedAt = now.Format(time.RFC3339)
+    m.JoinedAt = now
     return nil
 }
 

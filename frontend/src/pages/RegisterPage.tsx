@@ -1,119 +1,73 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import { useToast } from '../components/ToastProvider';
 import axiosInstance from '../api/axios';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { addToast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axiosInstance.post('/auth/register', { username, email, password });
+      await axiosInstance.post('/auth/signup', { username, email, password });
       addToast('Регистрация прошла успешно', 'success');
-      // Optionally redirect to login page
-      window.location.href = '/login';
+      navigate('/login');
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err.message || 'Ошибка регистрации';
+      const msg = err?.response?.data?.error || err.message || 'Ошибка регистрации';
       addToast(msg, 'error');
     }
   };
 
   return (
-    <Container>
-      <Form onSubmit={handleSubmit}>
-        <Title>Регистрация</Title>
-        <Label>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-800 to-gray-700">
+      <form 
+        onSubmit={handleSubmit} 
+        className="flex flex-col gap-4 bg-white/10 p-8 rounded-xl w-80 shadow-2xl backdrop-blur-md"
+      >
+        <h2 className="m-0 text-cyan-100 text-center text-2xl font-bold">Регистрация</h2>
+        <label className="flex flex-col text-cyan-100 text-sm">
           Имя пользователя
-          <Input
+          <input
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
             required
+            className="mt-1 p-2 border border-gray-600 rounded-md bg-white/10 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
           />
-        </Label>
-        <Label>
+        </label>
+        <label className="flex flex-col text-cyan-100 text-sm">
           Email
-          <Input
+          <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
+            className="mt-1 p-2 border border-gray-600 rounded-md bg-white/10 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
           />
-        </Label>
-        <Label>
+        </label>
+        <label className="flex flex-col text-cyan-100 text-sm">
           Пароль
-          <Input
+          <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             required
+            className="mt-1 p-2 border border-gray-600 rounded-md bg-white/10 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
           />
-        </Label>
-        <SubmitButton type="submit">Зарегистрироваться</SubmitButton>
-      </Form>
-    </Container>
+        </label>
+        <button 
+          type="submit"
+          className="mt-2 bg-cyan-500 border-none text-white p-2.5 rounded-md cursor-pointer hover:bg-cyan-600 transition-colors font-semibold"
+        >
+          Зарегистрироваться
+        </button>
+      </form>
+    </div>
   );
 };
 
 export default RegisterPage;
-
-// Styled components
-const Container = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #1e272e, #2d3436);
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 2rem;
-  border-radius: 12px;
-  width: 320px;
-`;
-
-const Title = styled.h2`
-  margin: 0;
-  color: #e0f7fa;
-  text-align: center;
-`;
-
-const Label = styled.label`
-  display: flex;
-  flex-direction: column;
-  color: #e0f7fa;
-  font-size: 0.9rem;
-`;
-
-const Input = styled.input`
-  margin-top: 0.3rem;
-  padding: 0.5rem;
-  border: 1px solid #555;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  &:focus {
-    outline: none;
-    border-color: #00bcd4;
-  }
-`;
-
-const SubmitButton = styled.button`
-  background: #00bcd4;
-  border: none;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  &:hover {
-    background: #0097a7;
-  }
-`;

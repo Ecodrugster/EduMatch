@@ -16,17 +16,18 @@ func NewPostgresMessageRepo(pool *pgxpool.Pool) MessageRepo {
 }
 
 func (r *postgresMessageRepo) Create(ctx context.Context, m *domain.Message) error {
+    now := time.Now().UTC()
+    m.SentAt = now
     const q = `
         INSERT INTO messages (project_id, sender_id, content, sent_at)
         VALUES ($1, $2, $3, $4)
         RETURNING id;
     `
-    now := time.Now().UTC()
     err := r.pool.QueryRow(ctx, q, m.ProjectID, m.SenderID, m.Content, now).Scan(&m.ID)
     if err != nil {
         return err
     }
-    m.SentAt = now.Format(time.RFC3339)
+    m.SentAt = now
     return nil
 }
 

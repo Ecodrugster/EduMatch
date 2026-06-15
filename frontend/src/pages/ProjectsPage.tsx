@@ -1,45 +1,32 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { Card } from '../components/Card';
 import { useToast } from '../components/ToastProvider';
 import { fetchProjects, createProject, deleteProject } from '../api/projects';
 import { Project } from '../types';
 import { ProjectModal } from '../components/ProjectModal';
 
-const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, #1e272e, #2d3436);
-  min-height: 100vh;
-`;
-
-const Loading = styled.div`
-  color: #e0f7fa;
-  text-align: center;
-  margin-top: 2rem;
-`;
-
 export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data, error, isLoading } = useQuery<Project[], Error>(
-    ['projects'],
-    fetchProjects,
-    {
-      onError: (err) => {
-        addToast(err.message || 'Не удалось загрузить проекты', 'error');
-      },
-    }
-  );
+  const { data, error, isLoading, isError } = useQuery<Project[], Error>({
+    queryKey: ['projects'],
+    queryFn: fetchProjects,
+  });
 
-  const createMutation = useMutation(createProject, {
+  // Handle query error effect since onError is removed from useQuery in v5
+  React.useEffect(() => {
+    if (isError && error) {
+      addToast(error.message || 'Не удалось загрузить проекты', 'error');
+    }
+  }, [isError, error, addToast]);
+
+  const createMutation = useMutation({
+    mutationFn: createProject,
     onSuccess: () => {
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       setIsModalOpen(false);
       addToast('Проект успешно создан', 'success');
     },
@@ -48,35 +35,49 @@ export default function ProjectsPage() {
     },
   });
 
-  const deleteMutation = useMutation(deleteProject, {
+  const deleteMutation = useMutation({
+    mutationFn: deleteProject,
     onSuccess: () => {
-      queryClient.invalidateQueries(['projects']);
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       addToast('Проект удален', 'success');
     },
   });
 
-  if (isLoading) return <Loading>Загрузка проектов...</Loading>;
-  if (error) return <Loading>Ошибка загрузки.</Loading>;
+  if (isLoading) return <div className="text-cyan-100 text-center mt-8">Загрузка проектов...</div>;
+  if (error) return <div className="text-cyan-100 text-center mt-8">Ошибка загрузки.</div>;
 
   return (
-    <GridContainer>
-      <button onClick={() => setIsModalOpen(true)}>Добавить проект</button>
-      {data && data.length > 0 ? (
-        data.map((project) => (
-          <Card 
-            key={project.id} 
-            project={project} 
-            onDelete={() => deleteMutation.mutate(project.id)} 
-          />
-        ))
-      ) : (
-        <Loading>Нет проектов.</Loading>
-      )}
+    <div className="p-8 bg-gradient-to-br from-gray-800 to-gray-700 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-cyan-100 m-0">Дашборд Проектов</h1>
+          <p className="text-gray-300 mt-2">Здесь отображаются проекты, отсортированные по совпадению с вашими навыками.</p>
+        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-cyan-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-cyan-600 transition-colors"
+        >
+          Добавить проект
+        </button>
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+        {data && data.length > 0 ? (
+          data.map((project) => (
+            <Card 
+              key={project.id} 
+              project={project} 
+              onDelete={() => deleteMutation.mutate(project.id)} 
+            />
+          ))
+        ) : (
+          <div className="text-cyan-100 mt-8 col-span-full">Нет проектов.</div>
+        )}
+      </div>
       <ProjectModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSubmit={(data) => createMutation.mutate(data)} 
       />
-    </GridContainer>
+    </div>
   );
 }

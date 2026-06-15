@@ -10,6 +10,7 @@ type UserRepo interface {
     Create(ctx context.Context, u *domain.User) error
     GetByEmail(ctx context.Context, email string) (*domain.User, error)
     GetByID(ctx context.Context, id int64) (*domain.User, error)
+    UpdateProfile(ctx context.Context, u *domain.User) error
     Delete(ctx context.Context, id int64) error // soft delete
 }
 

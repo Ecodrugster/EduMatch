@@ -1,11 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import styled from 'styled-components';
 import { Modal } from './Modal';
 
 interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { title: string; description?: string; skillsRequired: string[] }) => void;
+  onSubmit: (data: { title: string; description?: string; skills_required: string[] }) => void;
 }
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onSubmit }) => {
@@ -19,7 +18,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
       .split(',')
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
-    onSubmit({ title, description: description || undefined, skillsRequired: skillsArray });
+    onSubmit({ title, description: description || undefined, skills_required: skillsArray });
     setTitle('');
     setDescription('');
     setSkills('');
@@ -27,109 +26,54 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <FormWrapper onSubmit={handleSubmit}>
-        <Header>Создать новый проект</Header>
-        <Label>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+        <h2 className="m-0 mb-2 text-cyan-100 text-center">Создать новый проект</h2>
+        <label className="flex flex-col text-cyan-100 text-sm">
           Название
-          <Input type="text" value={title} onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)} required />
-        </Label>
-        <Label>
+          <input 
+            type="text" 
+            value={title} 
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)} 
+            required 
+            className="mt-1 p-2 border border-gray-600 rounded-md bg-white/10 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          />
+        </label>
+        <label className="flex flex-col text-cyan-100 text-sm">
           Описание
-          <Textarea value={description} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)} />
-        </Label>
-        <Label>
+          <textarea 
+            value={description} 
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)} 
+            className="mt-1 p-2 min-h-[80px] resize-y border border-gray-600 rounded-md bg-white/10 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          />
+        </label>
+        <label className="flex flex-col text-cyan-100 text-sm">
           Требуемые навыки (через запятую)
-          <Input type="text" value={skills} onChange={(e: ChangeEvent<HTMLInputElement>) => setSkills(e.target.value)} />
-        </Label>
-        <ButtonsRow>
-          <CancelButton type="button" onClick={onClose}>Отмена</CancelButton>
-          <SubmitButton type="submit" disabled={!title.trim()}>Создать</SubmitButton>
-        </ButtonsRow>
-      </FormWrapper>
+          <input 
+            type="text" 
+            value={skills} 
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSkills(e.target.value)} 
+            className="mt-1 p-2 border border-gray-600 rounded-md bg-white/10 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          />
+        </label>
+        <div className="flex justify-end gap-2 mt-2">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="bg-transparent border border-red-500 text-red-500 px-4 py-2 rounded-md cursor-pointer hover:bg-red-500/10 transition-colors"
+          >
+            Отмена
+          </button>
+          <button 
+            type="submit" 
+            disabled={!title.trim()}
+            className="bg-cyan-500 border-none text-white px-4 py-2 rounded-md cursor-pointer hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Создать
+          </button>
+        </div>
+      </form>
     </Modal>
   );
 };
 
-const FormWrapper = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-`;
-
-const Header = styled.h2`
-  margin: 0 0 0.5rem 0;
-  color: #e0f7fa;
-  text-align: center;
-`;
-
-const Label = styled.label`
-  display: flex;
-  flex-direction: column;
-  color: #e0f7fa;
-  font-size: 0.9rem;
-`;
-
-const Input = styled.input`
-  margin-top: 0.3rem;
-  padding: 0.5rem;
-  border: 1px solid #555;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  &:focus {
-    outline: none;
-    border-color: #00bcd4;
-  }
-`;
-
-const Textarea = styled.textarea`
-  margin-top: 0.3rem;
-  padding: 0.5rem;
-  min-height: 80px;
-  border: 1px solid #555;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  resize: vertical;
-  &:focus {
-    outline: none;
-    border-color: #00bcd4;
-  }
-`;
-
-const ButtonsRow = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-`;
-
-const CancelButton = styled.button`
-  background: transparent;
-  border: 1px solid #ff5252;
-  color: #ff5252;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  &:hover {
-    background: rgba(255, 82, 82, 0.1);
-  }
-`;
-
-const SubmitButton = styled.button`
-  background: #00bcd4;
-  border: none;
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  &:hover:not(:disabled) {
-    background: #0097a7;
-  }
-`;
 export default ProjectModal;

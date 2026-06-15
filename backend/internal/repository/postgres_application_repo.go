@@ -22,12 +22,11 @@ func (r *postgresApplicationRepo) Create(ctx context.Context, a *domain.Applicat
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id, created_at;
     `
-    now := time.Now().UTC()
-    err := r.pool.QueryRow(ctx, q, a.ProjectID, a.UserID, a.Message, a.Status, now).Scan(&a.ID, &a.CreatedAt)
+    a.CreatedAt = time.Now().UTC()
+    err := r.pool.QueryRow(ctx, q, a.ProjectID, a.UserID, a.Message, a.Status, a.CreatedAt).Scan(&a.ID, &a.CreatedAt)
     if err != nil {
         return err
     }
-    a.CreatedAt = now.Format(time.RFC3339)
     return nil
 }
 

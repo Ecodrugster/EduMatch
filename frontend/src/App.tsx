@@ -6,6 +6,8 @@ import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectDetailsPage from './pages/ProjectDetailsPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Root component – wraps the whole app with auth & toast context, and sets up routes.
 const App: React.FC = () => {
@@ -21,6 +23,22 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <ProjectsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:id"
+              element={
+                <ProtectedRoute>
+                  <ProjectDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

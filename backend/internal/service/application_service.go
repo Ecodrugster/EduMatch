@@ -25,7 +25,7 @@ func NewApplicationService(repo repository.ApplicationRepo, cfg *config.Config, 
 
 func (s *ApplicationService) Create(ctx context.Context, a *domain.Application) error {
     if err := s.validate.Struct(a); err != nil {return err}
-    a.CreatedAt = time.Now().UTC().Format(time.RFC3339)
+    a.CreatedAt = time.Now().UTC()
     a.Status = "pending"
     return s.repo.Create(ctx, a)
 }

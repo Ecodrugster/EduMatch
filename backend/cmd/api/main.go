@@ -7,6 +7,7 @@ import (
     "edumatch/internal/repository"
     "edumatch/internal/service"
     "edumatch/internal/delivery"
+    "edumatch/internal/delivery/ws"
     "github.com/gin-gonic/gin"
 swaggerFiles "github.com/swaggo/files"
     swagger "github.com/swaggo/gin-swagger"
@@ -34,6 +35,9 @@ func main() {
     messageService := service.NewMessageService(repos.Message, cfg, redisClient)
     memberService := service.NewMemberService(repos.Member, cfg, redisClient)
 
+    hub := ws.NewHub(messageService)
+    go hub.Run()
+
     
     router := gin.Default()
     router.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
@@ -46,14 +50,24 @@ func main() {
     protected := router.Group("/protected")
     protected.Use(delivery.AuthMiddleware(cfg))
     protected.GET("/ping", delivery.PingHandler)
-    protected.GET("/projects", func(c *gin.Context) { delivery.GetProjectsHandler(c, projectService) })
     
+    // Profile
+    protected.GET("/profile", func(c *gin.Context) { delivery.GetProfileHandler(c, userService) })
+    protected.PATCH("/profile", func(c *gin.Context) { delivery.UpdateProfileHandler(c, userService) })
+
+    // Projects
+    protected.GET("/projects", func(c *gin.Context) { delivery.GetProjectsHandler(c, projectService, userService) })
+    protected.GET("/projects/my", func(c *gin.Context) { delivery.GetMyProjectsHandler(c, projectService) })
+    protected.POST("/projects", func(c *gin.Context) { delivery.CreateProjectHandler(c, projectService) })
+    protected.GET("/projects/:id", func(c *gin.Context) { delivery.GetProjectHandler(c, projectService) })
+    protected.PATCH("/projects/:id", func(c *gin.Context) { delivery.UpdateProjectHandler(c, projectService) })
+    protected.DELETE("/projects/:id", func(c *gin.Context) { delivery.DeleteProjectHandler(c, projectService) })
     protected.POST("/applications", func(c *gin.Context) { delivery.CreateApplicationHandler(c, applicationService) })
     protected.GET("/applications/:id", func(c *gin.Context) { delivery.GetApplicationHandler(c, applicationService) })
-    protected.PATCH("/applications/:id/status", func(c *gin.Context) { delivery.UpdateApplicationStatusHandler(c, applicationService) })
+    protected.PATCH("/applications/:id/status", func(c *gin.Context) { delivery.UpdateApplicationStatusHandler(c, applicationService, memberService) })
     protected.GET("/applications", func(c *gin.Context) { delivery.ListApplicationsHandler(c, applicationService) })
     
-    protected.POST("/messages", func(c *gin.Context) { delivery.CreateMessageHandler(c, messageService) })
+    protected.GET("/ws/:project_id", func(c *gin.Context) { delivery.ServeWS(hub, c) })
     protected.GET("/messages", func(c *gin.Context) { delivery.ListMessagesHandler(c, messageService) })
     
     protected.POST("/members", func(c *gin.Context) { delivery.AddMemberHandler(c, memberService) })

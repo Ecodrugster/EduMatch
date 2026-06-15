@@ -23,7 +23,7 @@ func newMockProjectRepo() *mockProjectRepo {
 func (r *mockProjectRepo) Create(ctx context.Context, p *domain.Project) error {
     p.ID = r.nextID
     r.nextID++
-    now := time.Now().UTC().Format(time.RFC3339)
+    now := time.Now().UTC()
     p.CreatedAt = now
     p.UpdatedAt = now
     r.store[p.ID] = p
@@ -41,7 +41,7 @@ func (r *mockProjectRepo) Update(ctx context.Context, p *domain.Project) error {
     if _, ok := r.store[p.ID]; !ok {
         return errors.New("not found")
     }
-    p.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+    p.UpdatedAt = time.Now().UTC()
     r.store[p.ID] = p
     return nil
 }

@@ -64,6 +64,21 @@ func (r *postgresUserRepo) GetByID(ctx context.Context, id int64) (*domain.User,
     return &u, nil
 }
 
+func (r *postgresUserRepo) UpdateProfile(ctx context.Context, u *domain.User) error {
+    if u == nil {
+        return errors.New("user is nil")
+    }
+    query := `UPDATE users SET skills = $1, bio = $2, updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL`
+    cmdTag, err := r.pool.Exec(ctx, query, u.Skills, u.Bio, u.ID)
+    if err != nil {
+        return err
+    }
+    if cmdTag.RowsAffected() == 0 {
+        return errors.New("no rows updated")
+    }
+    return nil
+}
+
 func (r *postgresUserRepo) Delete(ctx context.Context, id int64) error {
     query := `UPDATE users SET deleted_at = NOW() WHERE id=$1 AND deleted_at IS NULL`
     cmdTag, err := r.pool.Exec(ctx, query, id)
