@@ -12,6 +12,7 @@ type UserRepo interface {
     GetByID(ctx context.Context, id int64) (*domain.User, error)
     UpdateProfile(ctx context.Context, u *domain.User) error
     Delete(ctx context.Context, id int64) error // soft delete
+    List(ctx context.Context, skills []string) ([]*domain.User, error)
 }
 
 type ProjectRepo interface {
@@ -23,10 +24,11 @@ type ProjectRepo interface {
 }
 
 type ProjectFilter struct {
-    TitleContains string
-    Skills []string
-    OwnerID int64
-    OpenOnly bool
+    TitleContains  string
+    Skills         []string
+    OwnerID        int64
+    InvolvedUserID int64
+    OpenOnly       bool
 }
 
 type ApplicationRepo interface {
@@ -45,22 +47,43 @@ type MessageRepo interface {
 type MemberRepo interface {
     Add(ctx context.Context, m *domain.Member) error
     ListByProject(ctx context.Context, projectID int64) ([]*domain.Member, error)
+    IsMember(ctx context.Context, projectID, userID int64) (bool, error)
+}
+
+type TaskRepo interface {
+    Create(ctx context.Context, t *domain.Task) error
+    ListByProject(ctx context.Context, projectID int64) ([]*domain.Task, error)
+    UpdateStatus(ctx context.Context, id int64, status string) error
+    Update(ctx context.Context, t *domain.Task) error
+    Delete(ctx context.Context, id int64) error
+    GetByID(ctx context.Context, id int64) (*domain.Task, error)
+}
+
+type NotificationRepo interface {
+    Create(ctx context.Context, n *domain.Notification) error
+    ListByUser(ctx context.Context, userID int64) ([]*domain.Notification, error)
+    MarkAsRead(ctx context.Context, id int64) error
+    MarkAllAsRead(ctx context.Context, userID int64) error
 }
 
 func NewRepositories(pool *pgxpool.Pool) *Repos {
     return &Repos{
-        User:        NewPostgresUserRepo(pool),
-        Project:     NewPostgresProjectRepo(pool),
-        Application: NewPostgresApplicationRepo(pool),
-        Message:     NewPostgresMessageRepo(pool),
-        Member:      NewPostgresMemberRepo(pool),
+        User:         NewPostgresUserRepo(pool),
+        Project:      NewPostgresProjectRepo(pool),
+        Application:  NewPostgresApplicationRepo(pool),
+        Message:      NewPostgresMessageRepo(pool),
+        Member:       NewPostgresMemberRepo(pool),
+        Task:         NewPostgresTaskRepo(pool),
+        Notification: NewPostgresNotificationRepo(pool),
     }
 }
 
 type Repos struct {
-    User        UserRepo
-    Project     ProjectRepo
-    Application ApplicationRepo
-    Message     MessageRepo
-    Member      MemberRepo
+    User         UserRepo
+    Project      ProjectRepo
+    Application  ApplicationRepo
+    Message      MessageRepo
+    Member       MemberRepo
+    Task         TaskRepo
+    Notification NotificationRepo
 }

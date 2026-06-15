@@ -32,3 +32,7 @@ func (s *MemberService) Add(ctx context.Context, m *domain.Member) error {
 func (s *MemberService) ListByProject(ctx context.Context, projectID int64) ([]*domain.Member, error) {
     return s.repo.ListByProject(ctx, projectID)
 }
+
+func (s *MemberService) IsMember(ctx context.Context, projectID, userID int64) (bool, error) {
+    return s.repo.IsMember(ctx, projectID, userID)
+}

@@ -1,27 +1,34 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
+import { UserCard } from '../components/UserCard';
 import { useToast } from '../components/ToastProvider';
 import { fetchProjects, createProject, deleteProject } from '../api/projects';
-import { Project } from '../types';
+import { fetchUsers } from '../api/users';
+import { Project, User } from '../types';
 import { ProjectModal } from '../components/ProjectModal';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchMode, setSearchMode] = useState<'projects' | 'students'>('projects');
+  const [skillsQuery, setSkillsQuery] = useState('');
+  
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
-  const { data, error, isLoading, isError } = useQuery<Project[], Error>({
-    queryKey: ['projects'],
-    queryFn: fetchProjects,
+  const { data: projectsData, isLoading: isLoadingProjects } = useQuery<Project[], Error>({
+    queryKey: ['projects', skillsQuery],
+    queryFn: () => fetchProjects({ skills: skillsQuery }),
+    enabled: searchMode === 'projects',
   });
 
-  // Handle query error effect since onError is removed from useQuery in v5
-  React.useEffect(() => {
-    if (isError && error) {
-      addToast(error.message || 'Не удалось загрузить проекты', 'error');
-    }
-  }, [isError, error, addToast]);
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery<User[], Error>({
+    queryKey: ['users', skillsQuery],
+    queryFn: () => fetchUsers(skillsQuery),
+    enabled: searchMode === 'students',
+  });
 
   const createMutation = useMutation({
     mutationFn: createProject,
@@ -43,36 +50,94 @@ export default function ProjectsPage() {
     },
   });
 
-  if (isLoading) return <div className="text-cyan-100 text-center mt-8">Загрузка проектов...</div>;
-  if (error) return <div className="text-cyan-100 text-center mt-8">Ошибка загрузки.</div>;
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSkillsQuery(e.target.value);
+  };
 
   return (
-    <div className="p-8 bg-gradient-to-br from-gray-800 to-gray-700 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-cyan-100 m-0">Дашборд Проектов</h1>
-          <p className="text-gray-300 mt-2">Здесь отображаются проекты, отсортированные по совпадению с вашими навыками.</p>
+    <div className="p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-700 transition-colors duration-200 min-h-screen">
+      <div className="max-w-6xl mx-auto flex flex-col gap-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-cyan-800 dark:text-cyan-100 m-0">Общий Дашборд</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">Ищите проекты или студентов по навыкам.</p>
+          </div>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-cyan-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-cyan-600 transition-colors"
+          >
+            Добавить проект
+          </button>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-cyan-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-cyan-600 transition-colors"
-        >
-          Добавить проект
-        </button>
-      </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
-        {data && data.length > 0 ? (
-          data.map((project) => (
-            <Card 
-              key={project.id} 
-              project={project} 
-              onDelete={() => deleteMutation.mutate(project.id)} 
-            />
-          ))
-        ) : (
-          <div className="text-cyan-100 mt-8 col-span-full">Нет проектов.</div>
+
+        {/* Search & Toggle Bar */}
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex bg-white dark:bg-gray-900 rounded-md p-1 border border-gray-200 dark:border-gray-700 w-full sm:w-auto">
+            <button
+              onClick={() => setSearchMode('projects')}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded text-sm font-medium transition-colors ${
+                searchMode === 'projects' ? 'bg-cyan-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-white'
+              }`}
+            >
+              Проекты
+            </button>
+            <button
+              onClick={() => setSearchMode('students')}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded text-sm font-medium transition-colors ${
+                searchMode === 'students' ? 'bg-cyan-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-white'
+              }`}
+            >
+              Студенты
+            </button>
+          </div>
+          
+          <input
+            type="text"
+            placeholder={`Поиск ${searchMode === 'projects' ? 'проектов' : 'студентов'} по навыкам (через запятую)...`}
+            value={skillsQuery}
+            onChange={handleSearchChange}
+            className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-md focus:outline-none focus:border-cyan-500 transition-colors w-full"
+          />
+        </div>
+
+        {/* Content Area */}
+        {searchMode === 'projects' && (
+          <div>
+            {isLoadingProjects ? (
+              <div className="text-cyan-800 dark:text-cyan-100 text-center py-12">Загрузка проектов...</div>
+            ) : projectsData && projectsData.length > 0 ? (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                {projectsData.map((project) => (
+                  <Card 
+                    key={project.id} 
+                    project={project} 
+                    onDelete={project.owner_id === userId ? () => deleteMutation.mutate(project.id) : undefined} 
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-cyan-800 dark:text-cyan-100 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">Проекты не найдены.</div>
+            )}
+          </div>
+        )}
+
+        {searchMode === 'students' && (
+          <div>
+            {isLoadingUsers ? (
+              <div className="text-cyan-800 dark:text-cyan-100 text-center py-12">Загрузка студентов...</div>
+            ) : usersData && usersData.length > 0 ? (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                {usersData.map((user) => (
+                  <UserCard key={user.id} user={user} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-cyan-800 dark:text-cyan-100 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">Студенты не найдены.</div>
+            )}
+          </div>
         )}
       </div>
+
       <ProjectModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

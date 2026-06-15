@@ -9,8 +9,7 @@ import (
     "edumatch/internal/service"
 )
 
-// CreateApplicationHandler
-func CreateApplicationHandler(c *gin.Context, svc *service.ApplicationService) {
+func CreateApplicationHandler(c *gin.Context, svc *service.ApplicationService, projSvc *service.ProjectService, notifSvc *service.NotificationService) {
     var in struct {
         ProjectID int64  `json:"project_id" binding:"required"`
         Message   string `json:"message" binding:"required"`
@@ -27,6 +26,17 @@ func CreateApplicationHandler(c *gin.Context, svc *service.ApplicationService) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
+
+    // Send notification to project owner
+    proj, err := projSvc.Get(c.Request.Context(), in.ProjectID)
+    if err == nil && proj.OwnerID != userID {
+        notifSvc.Create(c.Request.Context(), &domain.Notification{
+            UserID:  proj.OwnerID,
+            Type:    "NEW_APPLICATION",
+            Message: "У вас новая заявка в проект: " + proj.Title,
+        })
+    }
+
     c.JSON(http.StatusCreated, gin.H{"application": app})
 }
 
@@ -42,7 +52,7 @@ func GetApplicationHandler(c *gin.Context, svc *service.ApplicationService) {
 }
 
 // UpdateApplicationStatusHandler
-func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationService, memberSvc *service.MemberService) {
+func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationService, memberSvc *service.MemberService, notifSvc *service.NotificationService) {
     id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
     var in struct {
         Status string `json:"status" binding:"required"`
@@ -67,6 +77,17 @@ func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationServ
         memberSvc.Add(c.Request.Context(), &domain.Member{
             ProjectID: app.ProjectID,
             UserID:    app.UserID,
+        })
+        notifSvc.Create(c.Request.Context(), &domain.Notification{
+            UserID:  app.UserID,
+            Type:    "APPLICATION_APPROVED",
+            Message: "Ваша заявка в проект была одобрена!",
+        })
+    } else if in.Status == "rejected" && app.Status != "rejected" {
+        notifSvc.Create(c.Request.Context(), &domain.Notification{
+            UserID:  app.UserID,
+            Type:    "APPLICATION_REJECTED",
+            Message: "Ваша заявка в проект была отклонена.",
         })
     }
 

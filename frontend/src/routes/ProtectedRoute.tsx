@@ -8,7 +8,7 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
   const location = useLocation();
 
   if (isInitializing) {
-    return <div className="flex h-screen items-center justify-center bg-gray-800 text-cyan-100">Загрузка...</div>;
+    return <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-800 text-cyan-800 dark:text-cyan-100">Загрузка...</div>;
   }
 
   if (!accessToken) {

@@ -52,3 +52,24 @@ type Member struct {
     JoinedAt  time.Time `json:"joined_at" db:"joined_at"`
     DeletedAt *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
 }
+
+type Task struct {
+    ID          int64      `json:"id" db:"id"`
+    ProjectID   int64      `json:"project_id" db:"project_id"`
+    Title       string     `json:"title" db:"title"`
+    Description string     `json:"description" db:"description"`
+    Status      string     `json:"status" db:"status"`
+    AssignedTo  *int64     `json:"assigned_to,omitempty" db:"assigned_to"`
+    CreatedAt   time.Time  `json:"created_at" db:"created_at"`
+    UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
+    DeletedAt   *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
+}
+
+type Notification struct {
+    ID        int64     `json:"id" db:"id"`
+    UserID    int64     `json:"user_id" db:"user_id"`
+    Type      string    `json:"type" db:"type"`
+    Message   string    `json:"message" db:"message"`
+    IsRead    bool      `json:"is_read" db:"is_read"`
+    CreatedAt time.Time `json:"created_at" db:"created_at"`
+}

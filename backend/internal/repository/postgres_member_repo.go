@@ -54,3 +54,19 @@ func (r *postgresMemberRepo) ListByProject(ctx context.Context, projectID int64)
     }
     return members, nil
 }
+
+// IsMember checks if a user is a member of a project.
+func (r *postgresMemberRepo) IsMember(ctx context.Context, projectID, userID int64) (bool, error) {
+    const q = `
+        SELECT EXISTS (
+            SELECT 1 FROM members
+            WHERE project_id = $1 AND user_id = $2 AND deleted_at IS NULL
+            UNION ALL
+            SELECT 1 FROM projects
+            WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL
+        );
+    `
+    var exists bool
+    err := r.pool.QueryRow(ctx, q, projectID, userID).Scan(&exists)
+    return exists, err
+}

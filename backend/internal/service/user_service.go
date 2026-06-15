@@ -140,3 +140,14 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID int64, skills []
 	user.Password = ""
 	return user, nil
 }
+
+func (s *UserService) ListUsers(ctx context.Context, skills []string) ([]*domain.User, error) {
+	users, err := s.repo.List(ctx, skills)
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range users {
+		u.Password = ""
+	}
+	return users, nil
+}

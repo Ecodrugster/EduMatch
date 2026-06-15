@@ -44,7 +44,28 @@ CREATE TABLE messages (
 CREATE TABLE members (
     id BIGSERIAL PRIMARY KEY,
     project_id BIGINT REFERENCES projects(id),
-    user_id BIGINT REFERENCES users(id),
-    joined_at TIMESTAMPTZ NOT NULL,
-    deleted_at TIMESTAMPTZ
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE tasks (
+    id BIGSERIAL PRIMARY KEY,
+    project_id BIGINT REFERENCES projects(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'TODO',
+    assigned_to BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE notifications (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NOT NULL
 );

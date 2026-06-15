@@ -90,3 +90,31 @@ func (r *postgresUserRepo) Delete(ctx context.Context, id int64) error {
     }
     return nil
 }
+
+func (r *postgresUserRepo) List(ctx context.Context, skills []string) ([]*domain.User, error) {
+    base := `SELECT id, username, email, skills, bio, created_at, updated_at FROM users WHERE deleted_at IS NULL`
+    args := []any{}
+    idx := 1
+
+    if len(skills) > 0 {
+        base += ` AND skills && $1`
+        args = append(args, skills)
+        idx++
+    }
+
+    rows, err := r.pool.Query(ctx, base, args...)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var results []*domain.User
+    for rows.Next() {
+        var u domain.User
+        if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.Skills, &u.Bio, &u.CreatedAt, &u.UpdatedAt); err != nil {
+            return nil, err
+        }
+        results = append(results, &u)
+    }
+    return results, nil
+}

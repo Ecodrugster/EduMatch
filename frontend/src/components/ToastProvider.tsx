@@ -13,9 +13,9 @@ type ToastContextType = {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 const toastTypeClasses = {
-  info: 'bg-blue-500/85 text-white',
-  error: 'bg-red-600/90 text-white',
-  success: 'bg-green-600/85 text-white',
+  info: 'bg-blue-500/85 text-gray-900 dark:text-white',
+  error: 'bg-red-600/90 text-gray-900 dark:text-white',
+  success: 'bg-green-600/85 text-gray-900 dark:text-white',
 };
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

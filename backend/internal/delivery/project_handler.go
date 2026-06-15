@@ -17,7 +17,7 @@ import (
 func GetMyProjectsHandler(c *gin.Context, svc *service.ProjectService) {
 	userIDStr, _ := c.Get("userID")
 	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
-	filter := repository.ProjectFilter{OwnerID: userID}
+	filter := repository.ProjectFilter{InvolvedUserID: userID}
 	projects, err := svc.List(c.Request.Context(), filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

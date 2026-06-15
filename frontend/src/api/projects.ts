@@ -1,8 +1,13 @@
 import axiosInstance from './axios';
 
-export const fetchProjects = async () => {
-  const response = await axiosInstance.get('/protected/projects');
+export const fetchProjects = async (params?: { skills?: string, title?: string }) => {
+  const response = await axiosInstance.get('/protected/projects', { params });
   return response.data.projects; // expected array of Project objects
+};
+
+export const fetchMyProjects = async () => {
+  const response = await axiosInstance.get('/protected/projects/my');
+  return response.data.projects;
 };
 
 export const getProject = async (id: number) => {

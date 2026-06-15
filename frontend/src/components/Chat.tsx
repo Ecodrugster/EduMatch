@@ -82,11 +82,11 @@ export const Chat: React.FC<ChatProps> = ({ projectId }) => {
     setInput('');
   };
 
-  if (isLoading) return <div className="text-cyan-100">Загрузка истории чата...</div>;
+  if (isLoading) return <div className="text-cyan-800 dark:text-cyan-100">Загрузка истории чата...</div>;
 
   return (
-    <div className="flex flex-col bg-gray-900 border border-gray-700 rounded-xl overflow-hidden h-[500px]">
-      <div className="bg-gray-800 p-4 border-b border-gray-700">
+    <div className="flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden h-[500px]">
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="m-0 text-cyan-400">Командный Чат</h3>
       </div>
       
@@ -98,7 +98,7 @@ export const Chat: React.FC<ChatProps> = ({ projectId }) => {
               <span className="text-xs text-gray-500 mb-1">
                 {isMe ? 'Вы' : `Пользователь #${msg.sender_id}`}
               </span>
-              <div className={`px-4 py-2 rounded-2xl ${isMe ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-700 text-gray-200 rounded-bl-none'}`}>
+              <div className={`px-4 py-2 rounded-2xl ${isMe ? 'bg-cyan-600 text-white rounded-br-none' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-bl-none'}`}>
                 {msg.content}
               </div>
             </div>
@@ -107,13 +107,13 @@ export const Chat: React.FC<ChatProps> = ({ projectId }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 bg-gray-800 border-t border-gray-700 flex gap-2">
+      <form onSubmit={sendMessage} className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex gap-2">
         <input 
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Написать сообщение..."
-          className="flex-1 bg-gray-700 text-white rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-cyan-500"
+          className="flex-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-cyan-500"
         />
         <button 
           type="submit"

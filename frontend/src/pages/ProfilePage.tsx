@@ -48,38 +48,38 @@ export default function ProfilePage() {
     updateMutation.mutate({ bio, skills: skillsArray });
   };
 
-  if (isLoading) return <div className="text-cyan-100 text-center mt-8">Загрузка профиля...</div>;
+  if (isLoading) return <div className="text-cyan-800 dark:text-cyan-100 text-center mt-8">Загрузка профиля...</div>;
 
   return (
-    <div className="p-8 bg-gradient-to-br from-gray-800 to-gray-700 min-h-screen">
+    <div className="p-8 bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-700 transition-colors duration-200 min-h-screen">
       <div className="max-w-2xl mx-auto bg-white/10 p-8 rounded-xl shadow-2xl backdrop-blur-md">
-        <h1 className="text-3xl font-bold text-cyan-100 m-0 mb-6">Мой Профиль</h1>
+        <h1 className="text-3xl font-bold text-cyan-800 dark:text-cyan-100 m-0 mb-6">Мой Профиль</h1>
         
         {profile && (
           <div className="mb-6 flex flex-col gap-2">
-            <p className="text-gray-300"><span className="font-semibold text-cyan-400">Имя пользователя:</span> {profile.username}</p>
-            <p className="text-gray-300"><span className="font-semibold text-cyan-400">Email:</span> {profile.email}</p>
+            <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Имя пользователя:</span> {profile.username}</p>
+            <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Email:</span> {profile.email}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <label className="flex flex-col text-cyan-100 text-sm">
+          <label className="flex flex-col text-cyan-800 dark:text-cyan-100 text-sm">
             О себе (Bio)
             <textarea
               value={bio}
               onChange={e => setBio(e.target.value)}
-              className="mt-1 p-3 min-h-[120px] resize-y border border-gray-600 rounded-md bg-white/5 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+              className="mt-1 p-3 min-h-[120px] resize-y border border-gray-300 dark:border-gray-600 rounded-md bg-white/5 text-gray-900 dark:text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               placeholder="Расскажите о себе, своих интересах и опыте..."
             />
           </label>
           
-          <label className="flex flex-col text-cyan-100 text-sm">
+          <label className="flex flex-col text-cyan-800 dark:text-cyan-100 text-sm">
             Мои навыки (через запятую)
             <input
               type="text"
               value={skills}
               onChange={e => setSkills(e.target.value)}
-              className="mt-1 p-3 border border-gray-600 rounded-md bg-white/5 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+              className="mt-1 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white/5 text-gray-900 dark:text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               placeholder="Например: Go, React, PostgreSQL"
             />
           </label>

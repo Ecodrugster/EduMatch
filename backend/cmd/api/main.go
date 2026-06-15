@@ -34,11 +34,12 @@ func main() {
     applicationService := service.NewApplicationService(repos.Application, cfg, redisClient)
     messageService := service.NewMessageService(repos.Message, cfg, redisClient)
     memberService := service.NewMemberService(repos.Member, cfg, redisClient)
+    taskService := service.NewTaskService(repos.Task)
+    notificationService := service.NewNotificationService(repos.Notification)
 
     hub := ws.NewHub(messageService)
     go hub.Run()
 
-    
     router := gin.Default()
     router.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
     
@@ -51,9 +52,10 @@ func main() {
     protected.Use(delivery.AuthMiddleware(cfg))
     protected.GET("/ping", delivery.PingHandler)
     
-    // Profile
+    // Profile and Users
     protected.GET("/profile", func(c *gin.Context) { delivery.GetProfileHandler(c, userService) })
     protected.PATCH("/profile", func(c *gin.Context) { delivery.UpdateProfileHandler(c, userService) })
+    protected.GET("/users", func(c *gin.Context) { delivery.GetUsersHandler(c, userService) })
 
     // Projects
     protected.GET("/projects", func(c *gin.Context) { delivery.GetProjectsHandler(c, projectService, userService) })
@@ -62,16 +64,33 @@ func main() {
     protected.GET("/projects/:id", func(c *gin.Context) { delivery.GetProjectHandler(c, projectService) })
     protected.PATCH("/projects/:id", func(c *gin.Context) { delivery.UpdateProjectHandler(c, projectService) })
     protected.DELETE("/projects/:id", func(c *gin.Context) { delivery.DeleteProjectHandler(c, projectService) })
-    protected.POST("/applications", func(c *gin.Context) { delivery.CreateApplicationHandler(c, applicationService) })
+    
+    // Applications
+    protected.POST("/applications", func(c *gin.Context) { delivery.CreateApplicationHandler(c, applicationService, projectService, notificationService) })
     protected.GET("/applications/:id", func(c *gin.Context) { delivery.GetApplicationHandler(c, applicationService) })
-    protected.PATCH("/applications/:id/status", func(c *gin.Context) { delivery.UpdateApplicationStatusHandler(c, applicationService, memberService) })
+    protected.PATCH("/applications/:id/status", func(c *gin.Context) { delivery.UpdateApplicationStatusHandler(c, applicationService, memberService, notificationService) })
     protected.GET("/applications", func(c *gin.Context) { delivery.ListApplicationsHandler(c, applicationService) })
     
+    // Chat & WS
     protected.GET("/ws/:project_id", func(c *gin.Context) { delivery.ServeWS(hub, c) })
     protected.GET("/messages", func(c *gin.Context) { delivery.ListMessagesHandler(c, messageService) })
     
+    // Members
     protected.POST("/members", func(c *gin.Context) { delivery.AddMemberHandler(c, memberService) })
     protected.GET("/members", func(c *gin.Context) { delivery.ListMembersHandler(c, memberService) })
+    
+    // Tasks
+    taskHandler := delivery.NewTaskHandler(taskService, memberService)
+    protected.POST("/projects/:id/tasks", taskHandler.CreateTask)
+    protected.GET("/projects/:id/tasks", taskHandler.GetTasks)
+    protected.PATCH("/tasks/:taskId/status", taskHandler.UpdateTaskStatus)
+    protected.DELETE("/tasks/:taskId", taskHandler.DeleteTask)
+    
+    // Notifications
+    notificationHandler := delivery.NewNotificationHandler(notificationService)
+    protected.GET("/notifications", notificationHandler.GetNotifications)
+    protected.PATCH("/notifications/:id/read", notificationHandler.MarkAsRead)
+    protected.POST("/notifications/read-all", notificationHandler.MarkAllAsRead)
   
     log.Printf("Server starting on %s", cfg.ServerAddress())
     if err := router.Run(cfg.ServerAddress()); err != nil {

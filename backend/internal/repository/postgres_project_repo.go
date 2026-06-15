@@ -83,6 +83,11 @@ func (r *postgresProjectRepo) List(ctx context.Context, filter ProjectFilter) ([
         args = append(args, filter.OwnerID)
         idx++
     }
+    if filter.InvolvedUserID != 0 {
+        base += fmt.Sprintf(" AND (owner_id = $%d OR id IN (SELECT project_id FROM members WHERE user_id = $%d AND deleted_at IS NULL))", idx, idx)
+        args = append(args, filter.InvolvedUserID)
+        idx++
+    }
     if filter.OpenOnly {
         base += fmt.Sprintf(" AND is_open = true")
     }

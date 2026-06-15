@@ -3,6 +3,7 @@ package delivery
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"edumatch/internal/service"
 	"github.com/gin-gonic/gin"
@@ -59,4 +60,23 @@ func UpdateProfileHandler(c *gin.Context, svc *service.UserService) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
+// GetUsersHandler handles fetching users filtered by skills
+func GetUsersHandler(c *gin.Context, svc *service.UserService) {
+	var skills []string
+	if skillsStr := c.Query("skills"); skillsStr != "" {
+		parts := strings.Split(skillsStr, ",")
+		for _, p := range parts {
+			skills = append(skills, strings.TrimSpace(p))
+		}
+	}
+
+	users, err := svc.ListUsers(c.Request.Context(), skills)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
