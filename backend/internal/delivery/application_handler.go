@@ -92,7 +92,7 @@ func ListApplicationsHandler(c *gin.Context, svc *service.ApplicationService) {
         return
     }
     
-    // Ensure we don't return null for apps slice to prevent frontend crashes
+    // frontend crashes
     if apps == nil {
         apps = []*domain.Application{}
     }

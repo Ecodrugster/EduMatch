@@ -21,7 +21,7 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
             }
         }
         
-        // Fallback for WebSockets where Authorization header cannot be set
+        // Fallback for WebSockets where Authorization 
         if token == "" {
             token = c.Query("token")
         }

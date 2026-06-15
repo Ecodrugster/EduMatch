@@ -14,16 +14,9 @@ type Message struct {
 }
 
 type Hub struct {
-    // Registered clients by project ID
     Rooms map[int64]map[*Client]bool
-
-    // Inbound messages from the clients.
     Broadcast chan *domain.Message
-
-    // Register requests from the clients.
     Register chan *Client
-
-    // Unregister requests from clients.
     Unregister chan *Client
 
     messageService *service.MessageService

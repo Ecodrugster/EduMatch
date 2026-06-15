@@ -10,16 +10,9 @@ import (
 )
 
 const (
-    // Time allowed to write a message to the peer.
     writeWait = 10 * time.Second
-
-    // Time allowed to read the next pong message from the peer.
     pongWait = 60 * time.Second
-
-    // Send pings to peer with this period. Must be less than pongWait.
     pingPeriod = (pongWait * 9) / 10
-
-    // Maximum message size allowed from peer.
     maxMessageSize = 512
 )
 
@@ -31,17 +24,17 @@ var (
 type Client struct {
     Hub *Hub
 
-    // The websocket connection.
+
     Conn *websocket.Conn
 
-    // Buffered channel of outbound messages.
+
     Send chan *domain.Message
 
     ProjectID int64
     UserID    int64
 }
 
-// readPump pumps messages from the websocket connection to the hub.
+// readPump 
 func (c *Client) ReadPump() {
     defer func() {
         c.Hub.Unregister <- c
@@ -69,7 +62,7 @@ func (c *Client) ReadPump() {
     }
 }
 
-// writePump pumps messages from the hub to the websocket connection.
+// writePump 
 func (c *Client) WritePump() {
     ticker := time.NewTicker(pingPeriod)
     defer func() {
@@ -94,7 +87,7 @@ func (c *Client) WritePump() {
             data, _ := json.Marshal(message)
             w.Write(data)
 
-            // Add queued chat messages to the current websocket message.
+
             n := len(c.Send)
             for i := 0; i < n; i++ {
                 w.Write(newline)

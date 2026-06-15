@@ -30,7 +30,7 @@ func GetProfileHandler(c *gin.Context, svc *service.UserService) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
-// UpdateProfileHandler handles updating the current user's profile (skills and bio)
+// UpdateProfileHandler handles обновляет профиль пользователя
 func UpdateProfileHandler(c *gin.Context, svc *service.UserService) {
 	userIDStr, exists := c.Get("userID")
 	if !exists {

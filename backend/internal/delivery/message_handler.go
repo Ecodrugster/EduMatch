@@ -20,7 +20,7 @@ var upgrader = websocket.Upgrader{
     },
 }
 
-// ServeWS handles websocket requests from the peer.
+// ServeWS 
 func ServeWS(hub *ws.Hub, c *gin.Context) {
     projectID, err := strconv.ParseInt(c.Param("project_id"), 10, 64)
     if err != nil {
@@ -28,7 +28,7 @@ func ServeWS(hub *ws.Hub, c *gin.Context) {
         return
     }
 
-    // Assuming AuthMiddleware sets userID in context
+    // Assuming AuthMiddleware
     userIDStr := c.GetString("userID")
     userID, _ := strconv.ParseInt(userIDStr, 10, 64)
 
@@ -45,8 +45,6 @@ func ServeWS(hub *ws.Hub, c *gin.Context) {
     }
     client.Hub.Register <- client
 
-    // Allow collection of memory referenced by the caller by doing all work in
-    // new goroutines.
     go client.WritePump()
     go client.ReadPump()
 }

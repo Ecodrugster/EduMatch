@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetMyProjectsHandler handles fetching projects owned by the current user
+// GetMyProjectsHandler
 func GetMyProjectsHandler(c *gin.Context, svc *service.ProjectService) {
 	userIDStr, _ := c.Get("userID")
 	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
