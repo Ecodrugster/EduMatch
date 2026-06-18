@@ -41,6 +41,7 @@ func main() {
     go hub.Run()
 
     router := gin.Default()
+    router.Static("/uploads", "./uploads")
     router.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
     
     authRouter := router.Group("/auth")
@@ -55,7 +56,9 @@ func main() {
     // Profile and Users
     protected.GET("/profile", func(c *gin.Context) { delivery.GetProfileHandler(c, userService) })
     protected.PATCH("/profile", func(c *gin.Context) { delivery.UpdateProfileHandler(c, userService) })
+    protected.POST("/profile/avatar", func(c *gin.Context) { delivery.UploadAvatarHandler(c, userService) })
     protected.GET("/users", func(c *gin.Context) { delivery.GetUsersHandler(c, userService) })
+    protected.GET("/users/:id", func(c *gin.Context) { delivery.GetUserHandler(c, userService) })
 
     // Projects
     protected.GET("/projects", func(c *gin.Context) { delivery.GetProjectsHandler(c, projectService, userService) })

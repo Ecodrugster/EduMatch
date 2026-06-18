@@ -16,4 +16,5 @@ export interface User {
   email?: string;
   skills?: string[];
   bio?: string;
+  avatar_url?: string;
 }

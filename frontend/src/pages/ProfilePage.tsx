@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchProfile, updateProfile, UserProfile } from '../api/profile';
+import { fetchProfile, updateProfile, uploadAvatar, UserProfile } from '../api/profile';
 import { useToast } from '../components/ToastProvider';
 
 export default function ProfilePage() {
@@ -8,6 +8,8 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const [bio, setBio] = useState('');
   const [skills, setSkills] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const { data: profile, isLoading, isError, error } = useQuery<UserProfile, Error>({
     queryKey: ['profile'],
@@ -18,6 +20,9 @@ export default function ProfilePage() {
     if (profile) {
       setBio(profile.bio || '');
       setSkills(profile.skills ? profile.skills.join(', ') : '');
+      if (profile.avatar_url) {
+        setAvatarPreview(`/api${profile.avatar_url}`);
+      }
     }
   }, [profile]);
 
@@ -38,6 +43,27 @@ export default function ProfilePage() {
     },
   });
 
+  const avatarMutation = useMutation({
+    mutationFn: uploadAvatar,
+    onSuccess: (data) => {
+      setAvatarPreview(`/api${data.avatar_url}`);
+      addToast('Фото успешно обновлено', 'success');
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+    onError: (err: Error) => {
+      addToast(err.message || 'Ошибка загрузки фото', 'error');
+    },
+  });
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+      avatarMutation.mutate(file);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const skillsArray = skills
@@ -56,9 +82,32 @@ export default function ProfilePage() {
         <h1 className="text-3xl font-bold text-cyan-800 dark:text-cyan-100 m-0 mb-6">Мой Профиль</h1>
         
         {profile && (
-          <div className="mb-6 flex flex-col gap-2">
-            <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Имя пользователя:</span> {profile.username}</p>
-            <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Email:</span> {profile.email}</p>
+          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            <div className="relative group cursor-pointer">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-cyan-400 bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl">
+                    👤
+                  </div>
+                )}
+              </div>
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-white text-xs text-center px-2">Сменить фото</span>
+              </div>
+              <input 
+                type="file" 
+                accept="image/*"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={handleAvatarChange}
+                disabled={avatarMutation.isPending}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Имя пользователя:</span> {profile.username}</p>
+              <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Email:</span> {profile.email}</p>
+            </div>
           </div>
         )}
 

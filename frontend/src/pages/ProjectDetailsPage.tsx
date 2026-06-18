@@ -3,12 +3,74 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProject } from '../api/projects';
 import { createApplication, getApplicationsByProject, updateApplicationStatus, getMembersByProject } from '../api/applications';
+import { fetchUser } from '../api/users';
 import { Chat } from '../components/Chat';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
-import { Project } from '../types';
+import { Project, User } from '../types';
 
 import { KanbanBoard } from '../components/KanbanBoard';
+
+const ApplicationItem = ({ app, onStatusChange }: { app: any; onStatusChange: (id: number, status: 'approved' | 'rejected') => void }) => {
+  const { data: user, isLoading } = useQuery<User>({
+    queryKey: ['user', app.user_id],
+    queryFn: () => fetchUser(app.user_id),
+  });
+
+  return (
+    <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="flex flex-col gap-3 flex-1">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+            {user?.avatar_url ? (
+              <img src={`/api${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl">👤</div>
+            )}
+          </div>
+          <div>
+            <p className="text-lg font-bold text-gray-900 dark:text-white m-0">
+              {isLoading ? 'Загрузка...' : user?.username || `Кандидат ID: ${app.user_id}`}
+            </p>
+            {user?.skills && user.skills.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {user.skills.map((skill, idx) => (
+                  <span key={idx} className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border dark:border-cyan-800 px-2 py-0.5 rounded text-xs">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">Сопроводительное письмо:</p>
+          <p className="text-gray-900 dark:text-white text-sm m-0 italic">"{app.message}"</p>
+        </div>
+        
+        <p className="text-xs text-gray-500 m-0">Текущий статус: <span className="font-semibold">{app.status}</span></p>
+      </div>
+
+      {app.status === 'pending' && (
+        <div className="flex flex-row md:flex-col gap-2 shrink-0">
+          <button 
+            onClick={() => onStatusChange(app.id, 'approved')}
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded transition-colors shadow-sm"
+          >
+            Принять
+          </button>
+          <button 
+            onClick={() => onStatusChange(app.id, 'rejected')}
+            className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded transition-colors shadow-sm"
+          >
+            Отклонить
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ProjectDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -147,30 +209,8 @@ export default function ProjectDetailsPage() {
               <p className="text-gray-500 dark:text-gray-400">Пока нет новых заявок.</p>
             ) : (
               <div className="flex flex-col gap-4">
-                {applications.map(app => (
-                  <div key={app.id} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-1"><span className="text-cyan-400 font-semibold">Кандидат ID:</span> {app.user_id}</p>
-                      <p className="text-gray-900 dark:text-white italic">"{app.message}"</p>
-                      <p className="text-xs text-gray-500 mt-2">Статус: {app.status}</p>
-                    </div>
-                    {app.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => handleStatusChange(app.id, 'approved')}
-                          className="bg-green-500/20 text-green-400 border border-green-500/50 px-4 py-2 rounded cursor-pointer hover:bg-green-500/40 transition-colors"
-                        >
-                          Принять
-                        </button>
-                        <button 
-                          onClick={() => handleStatusChange(app.id, 'rejected')}
-                          className="bg-red-500/20 text-red-400 border border-red-500/50 px-4 py-2 rounded cursor-pointer hover:bg-red-500/40 transition-colors"
-                        >
-                          Отклонить
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                {applications.map((app: any) => (
+                  <ApplicationItem key={app.id} app={app} onStatusChange={handleStatusChange} />
                 ))}
               </div>
             )}

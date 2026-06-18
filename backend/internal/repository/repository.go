@@ -11,6 +11,7 @@ type UserRepo interface {
     GetByEmail(ctx context.Context, email string) (*domain.User, error)
     GetByID(ctx context.Context, id int64) (*domain.User, error)
     UpdateProfile(ctx context.Context, u *domain.User) error
+    UpdateAvatar(ctx context.Context, id int64, avatarURL string) error
     Delete(ctx context.Context, id int64) error // soft delete
     List(ctx context.Context, skills []string) ([]*domain.User, error)
 }

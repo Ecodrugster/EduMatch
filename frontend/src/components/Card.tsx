@@ -42,7 +42,7 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
           {project.skills_required.map((skill, idx) => (
             <li 
               key={idx}
-              className="bg-white/20 px-2 py-1 rounded text-sm text-gray-50"
+              className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border dark:border-cyan-800 px-2 py-1 rounded text-sm"
             >
               {skill}
             </li>

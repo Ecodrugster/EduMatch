@@ -19,6 +19,11 @@ export const getApplicationsByProject = async (projectId: number): Promise<Appli
   return response.data.applications || [];
 };
 
+export const getMyApplications = async (): Promise<Application[]> => {
+  const response = await axiosInstance.get('/protected/applications');
+  return response.data.applications || [];
+};
+
 export const updateApplicationStatus = async (data: { id: number; status: 'approved' | 'rejected' }): Promise<void> => {
   await axiosInstance.patch(`/protected/applications/${data.id}/status`, { status: data.status });
 };

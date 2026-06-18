@@ -141,6 +141,10 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID int64, skills []
 	return user, nil
 }
 
+func (s *UserService) UpdateAvatar(ctx context.Context, userID int64, avatarURL string) error {
+	return s.repo.UpdateAvatar(ctx, userID, avatarURL)
+}
+
 func (s *UserService) ListUsers(ctx context.Context, skills []string) ([]*domain.User, error) {
 	users, err := s.repo.List(ctx, skills)
 	if err != nil {

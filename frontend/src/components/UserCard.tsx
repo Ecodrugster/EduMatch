@@ -23,7 +23,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
           {user.skills.map((skill, index) => (
             <span 
               key={index} 
-              className="px-2 py-1 bg-cyan-900/30 text-cyan-300 text-xs rounded border border-cyan-800"
+              className="px-2 py-1 bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border dark:border-cyan-800 text-xs rounded"
             >
               {skill}
             </span>

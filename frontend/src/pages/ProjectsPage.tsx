@@ -30,6 +30,18 @@ export default function ProjectsPage() {
     enabled: searchMode === 'students',
   });
 
+  const recommendedProjects = React.useMemo(() => {
+    if (!projectsData) return [];
+    return projectsData.filter(p => p.match_score !== undefined && p.match_score > 0).slice(0, 3);
+  }, [projectsData]);
+
+  const otherProjects = React.useMemo(() => {
+    if (!projectsData) return [];
+    if (recommendedProjects.length === 0) return projectsData;
+    const recIds = new Set(recommendedProjects.map(p => p.id));
+    return projectsData.filter(p => !recIds.has(p.id));
+  }, [projectsData, recommendedProjects]);
+
   const createMutation = useMutation({
     mutationFn: createProject,
     onSuccess: () => {
@@ -102,19 +114,39 @@ export default function ProjectsPage() {
 
         {/* Content Area */}
         {searchMode === 'projects' && (
-          <div>
+          <div className="flex flex-col gap-10">
             {isLoadingProjects ? (
               <div className="text-cyan-800 dark:text-cyan-100 text-center py-12">Загрузка проектов...</div>
             ) : projectsData && projectsData.length > 0 ? (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
-                {projectsData.map((project) => (
-                  <Card 
-                    key={project.id} 
-                    project={project} 
-                    onDelete={project.owner_id === userId ? () => deleteMutation.mutate(project.id) : undefined} 
-                  />
-                ))}
-              </div>
+              <>
+                {recommendedProjects.length > 0 && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-cyan-800 dark:text-cyan-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Рекомендуемые проекты</h2>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                      {recommendedProjects.map((project) => (
+                        <Card 
+                          key={project.id} 
+                          project={project} 
+                          onDelete={project.owner_id === userId ? () => deleteMutation.mutate(project.id) : undefined} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <h2 className="text-2xl font-bold text-cyan-800 dark:text-cyan-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Все проекты</h2>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                    {otherProjects.map((project) => (
+                      <Card 
+                        key={project.id} 
+                        project={project} 
+                        onDelete={project.owner_id === userId ? () => deleteMutation.mutate(project.id) : undefined} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="text-cyan-800 dark:text-cyan-100 text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">Проекты не найдены.</div>
             )}

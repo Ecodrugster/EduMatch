@@ -9,6 +9,7 @@ type User struct {
     Password  string   `json:"-" db:"password_hash"`
     Skills    []string `json:"skills" db:"skills"`
     Bio       string   `json:"bio" db:"bio"`
+    AvatarURL *string  `json:"avatar_url" db:"avatar_url"`
     CreatedAt time.Time  `json:"created_at" db:"created_at"`
     UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
     DeletedAt *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
