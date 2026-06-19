@@ -63,7 +63,7 @@ EduMatch/
 
 1. **Клонируйте репозиторий:**
    ```bash
-   git clone <url-вашего-репозитория>
+   git clone https://github.com/Ecodrugster/EduMatch.git
    cd EduMatch
    ```
 
@@ -87,11 +87,3 @@ EduMatch/
    *Альтернативный ручной запуск:*
    - **Backend:** `cd backend && go run cmd/api/main.go`
    - **Frontend:** `cd frontend && npm run dev`
-
-5. **Доступ к приложению:**
-   - Frontend будет доступен по адресу: `http://localhost:5173` (по умолчанию для Vite)
-   - Swagger-документация API: `http://localhost:<порт_из_конфига>/swagger/index.html`
-
-## 📄 Лицензия
-
-[Укажите лицензию, например MIT License]
