@@ -6,6 +6,8 @@ export interface Project {
   skills_required: string[];
   is_open?: boolean;
   match_score?: number;
+  start_date?: string;
+  end_date?: string;
   created_at?: string;
   updated_at?: string;
 }

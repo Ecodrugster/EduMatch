@@ -1,0 +1,2 @@
+ALTER TABLE projects ADD COLUMN start_date TIMESTAMPTZ;
+ALTER TABLE projects ADD COLUMN end_date TIMESTAMPTZ;

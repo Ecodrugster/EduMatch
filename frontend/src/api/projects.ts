@@ -28,3 +28,13 @@ export const updateProject = async (id: number, project: any) => {
 export const deleteProject = async (id: number) => {
   await axiosInstance.delete(`/protected/projects/${id}`);
 };
+
+export const fetchRecommendedStudents = async (projectId: number) => {
+  const response = await axiosInstance.get(`/protected/projects/${projectId}/recommended-students`);
+  return response.data.students || [];
+};
+
+export const inviteStudent = async (projectId: number, userId: number) => {
+  const response = await axiosInstance.post(`/protected/projects/${projectId}/invite`, { user_id: userId });
+  return response.data;
+};

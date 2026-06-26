@@ -21,11 +21,18 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
     if (onDelete) onDelete();
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
   return (
     <div 
       onClick={handleClick} 
       role="button"
-      className="relative bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+      className="relative bg-white dark:bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
     >
       {project.match_score !== undefined && project.match_score > 0 && (
         <div className={`absolute top-4 right-4 px-2 py-1 rounded text-xs font-bold ${
@@ -35,7 +42,12 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
           {project.match_score >= 80 ? '🔥 ' : ''}{project.match_score}% Совпадение
         </div>
       )}
-      <h3 className="m-0 mb-2 text-cyan-800 dark:text-cyan-100 pr-24">{project.title}</h3>
+      <h3 className="m-0 mb-1 text-cyan-800 dark:text-cyan-100 pr-24">{project.title}</h3>
+      {(project.start_date || project.end_date) && (
+        <div className="text-xs text-cyan-600 dark:text-cyan-400 mb-3 font-semibold flex items-center gap-1">
+          📅 Сроки: {project.start_date ? `с ${formatDate(project.start_date)}` : ''} {project.end_date ? `по ${formatDate(project.end_date)}` : ''}
+        </div>
+      )}
       <p className="text-gray-600 dark:text-gray-300 m-0 mb-2">{project.description}</p>
       {project.skills_required && project.skills_required.length > 0 && (
         <ul className="list-none p-0 flex flex-wrap gap-2">

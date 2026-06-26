@@ -36,6 +36,7 @@ func main() {
     memberService := service.NewMemberService(repos.Member, cfg, redisClient)
     taskService := service.NewTaskService(repos.Task)
     notificationService := service.NewNotificationService(repos.Notification)
+    projectDocumentService := service.NewProjectDocumentService(repos.ProjectDocument, repos.Member, repos.Project)
 
     hub := ws.NewHub(messageService)
     go hub.Run()
@@ -67,6 +68,8 @@ func main() {
     protected.GET("/projects/:id", func(c *gin.Context) { delivery.GetProjectHandler(c, projectService) })
     protected.PATCH("/projects/:id", func(c *gin.Context) { delivery.UpdateProjectHandler(c, projectService) })
     protected.DELETE("/projects/:id", func(c *gin.Context) { delivery.DeleteProjectHandler(c, projectService) })
+    protected.GET("/projects/:id/recommended-students", func(c *gin.Context) { delivery.GetRecommendedStudentsHandler(c, projectService, userService, memberService) })
+    protected.POST("/projects/:id/invite", func(c *gin.Context) { delivery.InviteStudentHandler(c, projectService, notificationService) })
     
     // Applications
     protected.POST("/applications", func(c *gin.Context) { delivery.CreateApplicationHandler(c, applicationService, projectService, notificationService) })
@@ -94,6 +97,12 @@ func main() {
     protected.GET("/notifications", notificationHandler.GetNotifications)
     protected.PATCH("/notifications/:id/read", notificationHandler.MarkAsRead)
     protected.POST("/notifications/read-all", notificationHandler.MarkAllAsRead)
+
+    // Documents
+    documentHandler := delivery.NewProjectDocumentHandler(projectDocumentService)
+    protected.POST("/projects/:id/documents", documentHandler.UploadDocument)
+    protected.GET("/projects/:id/documents", documentHandler.ListDocuments)
+    protected.DELETE("/projects/:id/documents/:docId", documentHandler.DeleteDocument)
   
     log.Printf("Server starting on %s", cfg.ServerAddress())
     if err := router.Run(cfg.ServerAddress()); err != nil {

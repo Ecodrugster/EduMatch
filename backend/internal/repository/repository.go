@@ -67,24 +67,33 @@ type NotificationRepo interface {
     MarkAllAsRead(ctx context.Context, userID int64) error
 }
 
+type ProjectDocumentRepo interface {
+    Create(ctx context.Context, d *domain.ProjectDocument) error
+    ListByProject(ctx context.Context, projectID int64) ([]*domain.ProjectDocument, error)
+    GetByID(ctx context.Context, id int64) (*domain.ProjectDocument, error)
+    Delete(ctx context.Context, id int64) error
+}
+
 func NewRepositories(pool *pgxpool.Pool) *Repos {
     return &Repos{
-        User:         NewPostgresUserRepo(pool),
-        Project:      NewPostgresProjectRepo(pool),
-        Application:  NewPostgresApplicationRepo(pool),
-        Message:      NewPostgresMessageRepo(pool),
-        Member:       NewPostgresMemberRepo(pool),
-        Task:         NewPostgresTaskRepo(pool),
-        Notification: NewPostgresNotificationRepo(pool),
+        User:            NewPostgresUserRepo(pool),
+        Project:         NewPostgresProjectRepo(pool),
+        Application:     NewPostgresApplicationRepo(pool),
+        Message:         NewPostgresMessageRepo(pool),
+        Member:          NewPostgresMemberRepo(pool),
+        Task:            NewPostgresTaskRepo(pool),
+        Notification:    NewPostgresNotificationRepo(pool),
+        ProjectDocument: NewPostgresProjectDocumentRepo(pool),
     }
 }
 
 type Repos struct {
-    User         UserRepo
-    Project      ProjectRepo
-    Application  ApplicationRepo
-    Message      MessageRepo
-    Member       MemberRepo
-    Task         TaskRepo
-    Notification NotificationRepo
+    User            UserRepo
+    Project         ProjectRepo
+    Application     ApplicationRepo
+    Message         MessageRepo
+    Member          MemberRepo
+    Task            TaskRepo
+    Notification    NotificationRepo
+    ProjectDocument ProjectDocumentRepo
 }

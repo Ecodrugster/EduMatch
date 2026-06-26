@@ -133,18 +133,25 @@ func UploadAvatarHandler(c *gin.Context, svc *service.UserService) {
 	filename := fmt.Sprintf("%d_%d%s", userID, time.Now().Unix(), ext)
 	filePath := filepath.Join("uploads", "avatars", filename)
 
+	fmt.Printf("[UploadAvatarHandler] Uploading avatar. Extracted UserID=%d, Filename=%s\n", userID, filename)
+
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		fmt.Printf("[UploadAvatarHandler] Failed to save file: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save file"})
 		return
 	}
 
 	avatarURL := "/uploads/avatars/" + filename
 
+	fmt.Printf("[UploadAvatarHandler] Calling UpdateAvatar for UserID=%d with URL=%s\n", userID, avatarURL)
+
 	if err := svc.UpdateAvatar(c.Request.Context(), userID, avatarURL); err != nil {
+		fmt.Printf("[UploadAvatarHandler] UpdateAvatar failed: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	fmt.Printf("[UploadAvatarHandler] Successfully updated avatar for UserID=%d\n", userID)
 	c.JSON(http.StatusOK, gin.H{"avatar_url": avatarURL})
 }
 

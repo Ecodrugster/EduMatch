@@ -16,14 +16,16 @@ type User struct {
 }
 
 type Project struct {
-    ID               int64    `json:"id" db:"id"`
-    OwnerID          int64    `json:"owner_id" db:"owner_id"`
-    Title            string   `json:"title" db:"title"`
-    Description      string   `json:"description" db:"description"`
-    SkillsRequired   []string `json:"skills_required" db:"skills_required"`
+    ID               int64      `json:"id" db:"id"`
+    OwnerID          int64      `json:"owner_id" db:"owner_id"`
+    Title            string     `json:"title" db:"title"`
+    Description      string     `json:"description" db:"description"`
+    SkillsRequired   []string   `json:"skills_required" db:"skills_required"`
+    StartDate        *time.Time `json:"start_date,omitempty" db:"start_date"`
+    EndDate          *time.Time `json:"end_date,omitempty" db:"end_date"`
     CreatedAt        time.Time  `json:"created_at" db:"created_at"`
     UpdatedAt        time.Time  `json:"updated_at" db:"updated_at"`
-    IsOpen           bool     `json:"is_open" db:"is_open"`
+    IsOpen           bool       `json:"is_open" db:"is_open"`
     DeletedAt        *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
 }
 
@@ -74,3 +76,15 @@ type Notification struct {
     IsRead    bool      `json:"is_read" db:"is_read"`
     CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
+
+type ProjectDocument struct {
+    ID         int64      `json:"id" db:"id"`
+    ProjectID  int64      `json:"project_id" db:"project_id"`
+    UploadedBy int64      `json:"uploaded_by" db:"uploaded_by"`
+    Name       string     `json:"name" db:"name"`
+    FilePath   string     `json:"file_path" db:"file_path"`
+    FileSize   int64      `json:"file_size" db:"file_size"`
+    CreatedAt  time.Time  `json:"created_at" db:"created_at"`
+    DeletedAt  *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
+}
+

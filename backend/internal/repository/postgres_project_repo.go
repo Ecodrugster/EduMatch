@@ -19,8 +19,8 @@ func NewPostgresProjectRepo(pool *pgxpool.Pool) ProjectRepo {
 
 func (r *postgresProjectRepo) Create(ctx context.Context, p *domain.Project) error {
     const q = `
-        INSERT INTO projects (owner_id, title, description, skills_required, is_open, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO projects (owner_id, title, description, skills_required, is_open, start_date, end_date, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id, created_at, updated_at;
     `
     now := time.Now().UTC()
@@ -30,6 +30,8 @@ func (r *postgresProjectRepo) Create(ctx context.Context, p *domain.Project) err
         p.Description,
         p.SkillsRequired,
         p.IsOpen,
+        p.StartDate,
+        p.EndDate,
         now,
         now,
     ).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt)
@@ -38,13 +40,13 @@ func (r *postgresProjectRepo) Create(ctx context.Context, p *domain.Project) err
 
 func (r *postgresProjectRepo) GetByID(ctx context.Context, id int64) (*domain.Project, error) {
     const q = `
-        SELECT id, owner_id, title, description, skills_required, is_open, created_at, updated_at, deleted_at
+        SELECT id, owner_id, title, description, skills_required, is_open, start_date, end_date, created_at, updated_at, deleted_at
         FROM projects WHERE id = $1 AND deleted_at IS NULL;
     `
     var p domain.Project
     err := r.pool.QueryRow(ctx, q, id).Scan(
         &p.ID, &p.OwnerID, &p.Title, &p.Description,
-        &p.SkillsRequired, &p.IsOpen,
+        &p.SkillsRequired, &p.IsOpen, &p.StartDate, &p.EndDate,
         &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
     )
     if err != nil {
@@ -55,10 +57,10 @@ func (r *postgresProjectRepo) GetByID(ctx context.Context, id int64) (*domain.Pr
 
 func (r *postgresProjectRepo) Update(ctx context.Context, p *domain.Project) error {
     const q = `
-        UPDATE projects SET title = $1, description = $2, skills_required = $3, is_open = $4, updated_at = $5
-        WHERE id = $6 AND deleted_at IS NULL;
+        UPDATE projects SET title = $1, description = $2, skills_required = $3, is_open = $4, start_date = $5, end_date = $6, updated_at = $7
+        WHERE id = $8 AND deleted_at IS NULL;
     `
-    _, err := r.pool.Exec(ctx, q, p.Title, p.Description, p.SkillsRequired, p.IsOpen, time.Now().UTC(), p.ID)
+    _, err := r.pool.Exec(ctx, q, p.Title, p.Description, p.SkillsRequired, p.IsOpen, p.StartDate, p.EndDate, time.Now().UTC(), p.ID)
     return err
 }
 
@@ -70,7 +72,7 @@ func (r *postgresProjectRepo) Delete(ctx context.Context, id int64) error {
 
 func (r *postgresProjectRepo) List(ctx context.Context, filter ProjectFilter) ([]*domain.Project, error) {
     // Build dynamic query based on filter fields
-    base := `SELECT id, owner_id, title, description, skills_required, is_open, created_at, updated_at FROM projects WHERE deleted_at IS NULL`
+    base := `SELECT id, owner_id, title, description, skills_required, is_open, start_date, end_date, created_at, updated_at FROM projects WHERE deleted_at IS NULL`
     args := []any{}
     idx := 1
     if filter.TitleContains != "" {
@@ -105,7 +107,7 @@ func (r *postgresProjectRepo) List(ctx context.Context, filter ProjectFilter) ([
     var results []*domain.Project
     for rows.Next() {
         var p domain.Project
-        if err := rows.Scan(&p.ID, &p.OwnerID, &p.Title, &p.Description, &p.SkillsRequired, &p.IsOpen, &p.CreatedAt, &p.UpdatedAt); err != nil {
+        if err := rows.Scan(&p.ID, &p.OwnerID, &p.Title, &p.Description, &p.SkillsRequired, &p.IsOpen, &p.StartDate, &p.EndDate, &p.CreatedAt, &p.UpdatedAt); err != nil {
             return nil, err
         }
         results = append(results, &p)

@@ -3,6 +3,7 @@ package repository
 import (
     "context"
     "errors"
+    "fmt"
     "time"
 
     "github.com/jackc/pgx/v5/pgxpool"
@@ -80,12 +81,21 @@ func (r *postgresUserRepo) UpdateProfile(ctx context.Context, u *domain.User) er
 }
 
 func (r *postgresUserRepo) UpdateAvatar(ctx context.Context, id int64, avatarURL string) error {
-    query := `UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL`
+    query := `UPDATE users SET avatar_url = $1::text, updated_at = NOW() WHERE id = $2::bigint AND deleted_at IS NULL`
+    
+    // Log the update attempt
+    fmt.Printf("[postgresUserRepo.UpdateAvatar] Executing query for id=%d, avatarURL=%s\n", id, avatarURL)
+    
     cmdTag, err := r.pool.Exec(ctx, query, avatarURL, id)
     if err != nil {
+        fmt.Printf("[postgresUserRepo.UpdateAvatar] Query failed: %v\n", err)
         return err
     }
-    if cmdTag.RowsAffected() == 0 {
+    
+    rowsAffected := cmdTag.RowsAffected()
+    fmt.Printf("[postgresUserRepo.UpdateAvatar] Query succeeded. Rows affected: %d\n", rowsAffected)
+    
+    if rowsAffected == 0 {
         return errors.New("no rows updated")
     }
     return nil

@@ -8,8 +8,9 @@ import { Chat } from '../components/Chat';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ToastProvider';
 import { Project, User } from '../types';
-
 import { KanbanBoard } from '../components/KanbanBoard';
+import { DocumentsTab } from '../components/DocumentsTab';
+import { StudentMatchingTab } from '../components/StudentMatchingTab';
 
 const ApplicationItem = ({ app, onStatusChange }: { app: any; onStatusChange: (id: number, status: 'approved' | 'rejected') => void }) => {
   const { data: user, isLoading } = useQuery<User>({
@@ -82,7 +83,7 @@ export default function ProjectDetailsPage() {
 
   const [message, setMessage] = useState('');
   const [hasApplied, setHasApplied] = useState(false);
-  const [tab, setTab] = useState<'chat' | 'tasks'>('chat');
+  const [tab, setTab] = useState<'chat' | 'tasks' | 'documents' | 'matching'>('chat');
 
   const { data: project, isLoading, isError } = useQuery<Project, Error>({
     queryKey: ['project', projectId],
@@ -152,12 +153,17 @@ export default function ProjectDetailsPage() {
           >
             Назад
           </button>
-          <h1 className="text-4xl font-bold text-cyan-800 dark:text-cyan-100 m-0 mb-4">{project.title}</h1>
+          <h1 className="text-4xl font-bold text-cyan-800 dark:text-cyan-100 m-0 mb-2">{project.title}</h1>
+          {(project.start_date || project.end_date) && (
+            <div className="text-sm text-cyan-600 dark:text-cyan-400 mb-4 font-semibold flex items-center gap-1">
+              📅 Сроки проекта: {project.start_date ? `с ${new Date(project.start_date).toLocaleDateString('ru-RU')}` : ''} {project.end_date ? `по ${new Date(project.end_date).toLocaleDateString('ru-RU')}` : ''}
+            </div>
+          )}
           <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap text-lg mb-6">{project.description}</p>
           
           <div className="flex flex-wrap gap-2">
             {project.skills_required?.map(skill => (
-              <span key={skill} className="bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full text-sm font-medium border border-cyan-500/30">
+              <span key={skill} className="bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-300 px-3 py-1 rounded-full text-sm font-medium border border-cyan-200 dark:border-cyan-500/30">
                 {skill}
               </span>
             ))}
@@ -216,7 +222,6 @@ export default function ProjectDetailsPage() {
             )}
           </div>
         )}
-
         {/* Project Area for Members (Chat & Kanban) */}
         {(isOwner || isMember) && (
           <div className="mt-8 bg-white/5 border border-gray-300 dark:border-gray-600 p-6 rounded-xl shadow-lg">
@@ -237,13 +242,32 @@ export default function ProjectDetailsPage() {
               >
                 Задачи
               </button>
+              <button
+                onClick={() => setTab('documents')}
+                className={`text-lg font-semibold px-4 py-2 rounded-md transition-colors ${
+                  tab === 'documents' ? 'bg-cyan-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200'
+                }`}
+              >
+                Документы
+              </button>
+              {isOwner && (
+                <button
+                  onClick={() => setTab('matching')}
+                  className={`text-lg font-semibold px-4 py-2 rounded-md transition-colors ${
+                    tab === 'matching' ? 'bg-cyan-600 text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-200'
+                  }`}
+                >
+                  Подбор студентов
+                </button>
+              )}
             </div>
 
             {tab === 'chat' && <Chat projectId={projectId} />}
             {tab === 'tasks' && <div className="h-[600px]"><KanbanBoard projectId={projectId} /></div>}
+            {tab === 'documents' && <DocumentsTab projectId={projectId} isOwner={isOwner} currentUserId={userId} />}
+            {tab === 'matching' && isOwner && <StudentMatchingTab projectId={projectId} skillsRequired={project.skills_required} />}
           </div>
-        )}
-      </div>
+        )}</div>
     </div>
   );
 }
