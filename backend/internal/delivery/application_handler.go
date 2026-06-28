@@ -52,46 +52,90 @@ func GetApplicationHandler(c *gin.Context, svc *service.ApplicationService) {
 }
 
 // UpdateApplicationStatusHandler
-func UpdateApplicationStatusHandler(c *gin.Context, svc *service.ApplicationService, memberSvc *service.MemberService, notifSvc *service.NotificationService) {
-    id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-    var in struct {
-        Status string `json:"status" binding:"required"`
-    }
-    if err := c.ShouldBindJSON(&in); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-    
-    app, err := svc.Get(c.Request.Context(), id)
-    if err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "application not found"})
-        return
-    }
+func UpdateApplicationStatusHandler(
+	c *gin.Context, 
+	svc *service.ApplicationService, 
+	memberSvc *service.MemberService, 
+	notifSvc *service.NotificationService,
+	projectSvc *service.ProjectService,
+) {
+	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	var in struct {
+		Status string `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&in); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	app, err := svc.Get(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "application not found"})
+		return
+	}
 
-    if err := svc.UpdateStatus(c.Request.Context(), id, in.Status); err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	userIDStr, _ := c.Get("userID")
+	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
 
-    if in.Status == "approved" && app.Status != "approved" {
-        memberSvc.Add(c.Request.Context(), &domain.Member{
-            ProjectID: app.ProjectID,
-            UserID:    app.UserID,
-        })
-        notifSvc.Create(c.Request.Context(), &domain.Notification{
-            UserID:  app.UserID,
-            Type:    "APPLICATION_APPROVED",
-            Message: "Ваша заявка в проект была одобрена!",
-        })
-    } else if in.Status == "rejected" && app.Status != "rejected" {
-        notifSvc.Create(c.Request.Context(), &domain.Notification{
-            UserID:  app.UserID,
-            Type:    "APPLICATION_REJECTED",
-            Message: "Ваша заявка в проект была отклонена.",
-        })
-    }
+	project, err := projectSvc.Get(c.Request.Context(), app.ProjectID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "project not found"})
+		return
+	}
 
-    c.Status(http.StatusNoContent)
+	// Authorization check: student accepts/rejects if 'invited', owner approves/rejects if otherwise
+	if app.Status == "invited" {
+		if userID != app.UserID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Only the invited student can accept or reject the invitation"})
+			return
+		}
+	} else {
+		if userID != project.OwnerID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Only the project owner can approve or reject applications"})
+			return
+		}
+	}
+
+	if err := svc.UpdateStatus(c.Request.Context(), id, in.Status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if in.Status == "approved" && app.Status != "approved" {
+		memberSvc.Add(c.Request.Context(), &domain.Member{
+			ProjectID: app.ProjectID,
+			UserID:    app.UserID,
+		})
+		if app.Status == "invited" {
+			notifSvc.Create(c.Request.Context(), &domain.Notification{
+				UserID:  project.OwnerID,
+				Type:    "INVITATION_ACCEPTED",
+				Message: "Студент принял ваше приглашение в проект \"" + project.Title + "\"!",
+			})
+		} else {
+			notifSvc.Create(c.Request.Context(), &domain.Notification{
+				UserID:  app.UserID,
+				Type:    "APPLICATION_APPROVED",
+				Message: "Ваша заявка в проект была одобрена!",
+			})
+		}
+	} else if in.Status == "rejected" && app.Status != "rejected" {
+		if app.Status == "invited" {
+			notifSvc.Create(c.Request.Context(), &domain.Notification{
+				UserID:  project.OwnerID,
+				Type:    "INVITATION_REJECTED",
+				Message: "Студент отклонил ваше приглашение в проект \"" + project.Title + "\".",
+			})
+		} else {
+			notifSvc.Create(c.Request.Context(), &domain.Notification{
+				UserID:  app.UserID,
+				Type:    "APPLICATION_REJECTED",
+				Message: "Ваша заявка в проект была отклонена.",
+			})
+		}
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
 // ListApplicationsHandler

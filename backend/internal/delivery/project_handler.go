@@ -270,11 +270,12 @@ func GetRecommendedStudentsHandler(
 	c.JSON(http.StatusOK, gin.H{"students": recommendations})
 }
 
-// InviteStudentHandler sends a notification to the invited student
+// InviteStudentHandler sends a notification to the invited student and creates an application record
 func InviteStudentHandler(
 	c *gin.Context, 
 	projectSvc *service.ProjectService, 
 	notificationSvc *service.NotificationService,
+	applicationSvc *service.ApplicationService,
 ) {
 	projectID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	userIDStr, _ := c.Get("userID")
@@ -296,6 +297,18 @@ func InviteStudentHandler(
 
 	if project.OwnerID != userID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Only the project owner can invite students"})
+		return
+	}
+
+	// Create application with status "invited"
+	app := &domain.Application{
+		ProjectID: projectID,
+		UserID:    req.UserID,
+		Message:   "Приглашение в проект \"" + project.Title + "\"",
+		Status:    "invited",
+	}
+	if err := applicationSvc.Create(c.Request.Context(), app); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

@@ -69,12 +69,12 @@ func main() {
     protected.PATCH("/projects/:id", func(c *gin.Context) { delivery.UpdateProjectHandler(c, projectService) })
     protected.DELETE("/projects/:id", func(c *gin.Context) { delivery.DeleteProjectHandler(c, projectService) })
     protected.GET("/projects/:id/recommended-students", func(c *gin.Context) { delivery.GetRecommendedStudentsHandler(c, projectService, userService, memberService) })
-    protected.POST("/projects/:id/invite", func(c *gin.Context) { delivery.InviteStudentHandler(c, projectService, notificationService) })
+    protected.POST("/projects/:id/invite", func(c *gin.Context) { delivery.InviteStudentHandler(c, projectService, notificationService, applicationService) })
     
     // Applications
     protected.POST("/applications", func(c *gin.Context) { delivery.CreateApplicationHandler(c, applicationService, projectService, notificationService) })
     protected.GET("/applications/:id", func(c *gin.Context) { delivery.GetApplicationHandler(c, applicationService) })
-    protected.PATCH("/applications/:id/status", func(c *gin.Context) { delivery.UpdateApplicationStatusHandler(c, applicationService, memberService, notificationService) })
+    protected.PATCH("/applications/:id/status", func(c *gin.Context) { delivery.UpdateApplicationStatusHandler(c, applicationService, memberService, notificationService, projectService) })
     protected.GET("/applications", func(c *gin.Context) { delivery.ListApplicationsHandler(c, applicationService) })
     
     // Chat & WS

@@ -5,7 +5,7 @@ export interface Application {
   project_id: number;
   user_id: number;
   message: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'invited';
   created_at: string;
 }
 
