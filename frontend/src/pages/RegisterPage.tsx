@@ -23,10 +23,10 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-700 transition-colors duration-200">
-      <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl shadow-2xl w-80 border border-gray-300 dark:border-gray-600/50">
-        <h2 className="m-0 mb-6 text-cyan-400 text-center text-3xl font-bold">EduMatch</h2>
-        <h3 className="m-0 mb-6 text-gray-700 dark:text-gray-200 text-center text-lg font-medium">Регистрация</h3>
+    <div className="flex justify-center items-center min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-50/40 via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300 p-4">
+      <div className="bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl p-8 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl w-full max-w-sm transition-all duration-300">
+        <h2 className="m-0 mb-2 text-center text-3xl font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent tracking-tight">EduMatch</h2>
+        <h3 className="m-0 mb-6 text-slate-500 dark:text-slate-400 text-center text-sm font-medium">Регистрация</h3>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <input
@@ -35,7 +35,7 @@ const RegisterPage: React.FC = () => {
               value={username}
               onChange={e => setUsername(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 text-slate-900 dark:text-white placeholder-slate-450 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all duration-300 text-sm"
             />
           </div>
           <div>
@@ -45,7 +45,7 @@ const RegisterPage: React.FC = () => {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 text-slate-900 dark:text-white placeholder-slate-450 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all duration-300 text-sm"
             />
           </div>
           <div>
@@ -55,19 +55,19 @@ const RegisterPage: React.FC = () => {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors"
+              className="w-full p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 text-slate-900 dark:text-white placeholder-slate-450 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all duration-300 text-sm"
             />
           </div>
           <button 
             type="submit"
-            className="w-full p-3 mt-2 border-none rounded-md bg-cyan-600 text-white font-bold cursor-pointer transition-colors duration-200 hover:bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+            className="w-full p-3 mt-2 border-none rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-bold cursor-pointer transition-all duration-300 hover:opacity-95 hover:shadow-lg hover:shadow-cyan-500/25 text-sm"
           >
             Зарегистрироваться
           </button>
         </form>
-        <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+        <div className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
           Уже есть аккаунт?{' '}
-          <Link to="/login" className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors font-medium">
+          <Link to="/login" className="text-cyan-500 hover:text-cyan-400 hover:underline transition-colors font-semibold">
             Войти
           </Link>
         </div>

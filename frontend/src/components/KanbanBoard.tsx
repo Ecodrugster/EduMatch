@@ -6,6 +6,7 @@ import { getProject } from '../api/projects';
 import { getMembersByProject } from '../api/applications';
 import { fetchUser } from '../api/users';
 import { useToast } from './ToastProvider';
+import { User } from 'lucide-react';
 
 interface KanbanBoardProps {
   projectId: number;
@@ -177,8 +178,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projectId }) => {
                             <div className="flex flex-col gap-1">
                               <span className="font-semibold">{task.title}</span>
                               {task.assigned_to && (
-                                <span className="text-xs text-cyan-650 dark:text-cyan-400 font-medium flex items-center gap-1">
-                                  👤 {getAssigneeName(task.assigned_to)}
+                                <span className="text-xs text-cyan-650 dark:text-cyan-400 font-medium flex items-center gap-1.5">
+                                  <User size={12} className="text-cyan-500" />
+                                  <span>{getAssigneeName(task.assigned_to)}</span>
                                 </span>
                               )}
                             </div>

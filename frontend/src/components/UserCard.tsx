@@ -7,23 +7,23 @@ interface UserCardProps {
 
 export const UserCard: React.FC<UserCardProps> = ({ user }) => {
   return (
-    <div className="bg-gray-50 dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-cyan-500 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all flex flex-col justify-between group">
+    <div className="bg-white dark:bg-slate-900/45 p-6 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 hover:border-cyan-500/40 hover:shadow-xl hover:shadow-cyan-500/5 transition-all duration-300 flex flex-col justify-between group backdrop-blur-md">
       <div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white m-0 group-hover:text-cyan-400 transition-colors">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0 group-hover:text-cyan-500 transition-colors">
           {user.username}
         </h3>
         {user.bio && (
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm line-clamp-3">
+          <p className="text-slate-500 dark:text-slate-400 mt-2.5 text-sm line-clamp-3 leading-relaxed">
             {user.bio}
           </p>
         )}
       </div>
       {user.skills && user.skills.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-1.5">
           {user.skills.map((skill, index) => (
             <span 
               key={index} 
-              className="px-2 py-1 bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border dark:border-cyan-800 text-xs rounded"
+              className="px-2.5 py-0.5 bg-blue-50/70 text-blue-600 dark:bg-blue-950/20 dark:text-blue-300 border border-blue-100/50 dark:border-blue-900/30 text-xs font-semibold rounded-lg"
             >
               {skill}
             </span>
