@@ -37,3 +37,30 @@ func ListMembersHandler(c *gin.Context, svc *service.MemberService) {
     }
     c.JSON(http.StatusOK, gin.H{"members": members})
 }
+
+// LeaveProjectHandler handles a user leaving a project.
+func LeaveProjectHandler(c *gin.Context, svc *service.MemberService) {
+    projectID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+        return
+    }
+
+    userIDStr, ok := c.Get("userID")
+    if !ok {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
+    userID, err := strconv.ParseInt(userIDStr.(string), 10, 64)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID"})
+        return
+    }
+
+    if err := svc.Leave(c.Request.Context(), projectID, userID); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Successfully left the project"})
+}

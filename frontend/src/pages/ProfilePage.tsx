@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchProfile, updateProfile, uploadAvatar, UserProfile } from '../api/profile';
+import { fetchMyProjects } from '../api/projects';
+import { useAuth } from '../context/AuthContext';
+import { Project } from '../types';
 import { useToast } from '../components/ToastProvider';
 
 export default function ProfilePage() {
   const { addToast } = useToast();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
   const [bio, setBio] = useState('');
   const [skills, setSkills] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -14,6 +18,11 @@ export default function ProfilePage() {
   const { data: profile, isLoading, isError, error } = useQuery<UserProfile, Error>({
     queryKey: ['profile'],
     queryFn: fetchProfile,
+  });
+
+  const { data: projects } = useQuery<Project[], Error>({
+    queryKey: ['my-projects'],
+    queryFn: fetchMyProjects,
   });
 
   useEffect(() => {
@@ -107,6 +116,26 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-2">
               <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Имя пользователя:</span> {profile.username}</p>
               <p className="text-gray-600 dark:text-gray-300"><span className="font-semibold text-cyan-400">Email:</span> {profile.email}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Сводка по проектам */}
+        {projects && (
+          <div className="grid grid-cols-2 gap-4 mb-8 p-4 bg-white/5 rounded-xl border border-gray-200/20 dark:border-gray-700/50">
+            <div className="flex flex-col items-center justify-center p-3 text-center bg-cyan-500/10 rounded-lg">
+              <span className="text-3xl mb-1">🛠️</span>
+              <span className="text-2xl font-black text-cyan-800 dark:text-cyan-100">
+                {projects.filter(p => p.owner_id === userId).length}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-1">Созданные проекты</span>
+            </div>
+            <div className="flex flex-col items-center justify-center p-3 text-center bg-emerald-500/10 rounded-lg">
+              <span className="text-3xl mb-1">🤝</span>
+              <span className="text-2xl font-black text-emerald-800 dark:text-emerald-100">
+                {projects.filter(p => p.owner_id !== userId).length}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-1">Проекты с участием</span>
             </div>
           </div>
         )}

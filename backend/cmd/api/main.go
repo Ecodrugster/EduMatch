@@ -70,6 +70,7 @@ func main() {
     protected.DELETE("/projects/:id", func(c *gin.Context) { delivery.DeleteProjectHandler(c, projectService) })
     protected.GET("/projects/:id/recommended-students", func(c *gin.Context) { delivery.GetRecommendedStudentsHandler(c, projectService, userService, memberService) })
     protected.POST("/projects/:id/invite", func(c *gin.Context) { delivery.InviteStudentHandler(c, projectService, notificationService, applicationService) })
+    protected.POST("/projects/:id/leave", func(c *gin.Context) { delivery.LeaveProjectHandler(c, memberService) })
     
     // Applications
     protected.POST("/applications", func(c *gin.Context) { delivery.CreateApplicationHandler(c, applicationService, projectService, notificationService) })

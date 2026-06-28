@@ -1,18 +1,43 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { Modal } from './Modal';
+import { Project } from '../types';
 
 interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { title: string; description?: string; skills_required: string[]; start_date?: string; end_date?: string }) => void;
+  project?: Project;
 }
 
-export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onSubmit }) => {
+export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onSubmit, project }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState(''); // comma‑separated list
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  useEffect(() => {
+    if (project && isOpen) {
+      setTitle(project.title || '');
+      setDescription(project.description || '');
+      setSkills(project.skills_required?.join(', ') || '');
+      
+      const formatDateForInput = (d?: string) => {
+        if (!d) return '';
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      };
+      setStartDate(formatDateForInput(project.start_date));
+      setEndDate(formatDateForInput(project.end_date));
+    } else if (isOpen) {
+      setTitle('');
+      setDescription('');
+      setSkills('');
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [project, isOpen]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -31,26 +56,32 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
       start_date: formattedStartDate,
       end_date: formattedEndDate
     });
-    setTitle('');
-    setDescription('');
-    setSkills('');
-    setStartDate('');
-    setEndDate('');
+    if (!project) {
+      setTitle('');
+      setDescription('');
+      setSkills('');
+      setStartDate('');
+      setEndDate('');
+    }
   };
 
   const handleClose = () => {
-    setTitle('');
-    setDescription('');
-    setSkills('');
-    setStartDate('');
-    setEndDate('');
+    if (!project) {
+      setTitle('');
+      setDescription('');
+      setSkills('');
+      setStartDate('');
+      setEndDate('');
+    }
     onClose();
   };
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-        <h2 className="m-0 mb-2 text-cyan-800 dark:text-cyan-100 text-center">Создать новый проект</h2>
+        <h2 className="m-0 mb-2 text-cyan-800 dark:text-cyan-100 text-center">
+          {project ? 'Редактировать проект' : 'Создать новый проект'}
+        </h2>
         <label className="flex flex-col text-cyan-800 dark:text-cyan-100 text-sm">
           Название
           <input 
@@ -113,7 +144,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
             disabled={!title.trim()}
             className="bg-cyan-500 border-none text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
           >
-            Создать
+            {project ? 'Сохранить' : 'Создать'}
           </button>
         </div>
       </form>

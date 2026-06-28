@@ -29,6 +29,11 @@ export const deleteProject = async (id: number) => {
   await axiosInstance.delete(`/protected/projects/${id}`);
 };
 
+export const leaveProject = async (id: number) => {
+  const response = await axiosInstance.post(`/protected/projects/${id}/leave`);
+  return response.data;
+};
+
 export const fetchRecommendedStudents = async (projectId: number) => {
   const response = await axiosInstance.get(`/protected/projects/${projectId}/recommended-students`);
   return response.data.students || [];

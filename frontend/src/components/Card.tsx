@@ -6,9 +6,11 @@ interface CardProps {
   project: Project;
   onSelect?: (project: Project) => void;
   onDelete?: () => void;
+  onLeave?: () => void;
+  onEdit?: () => void;
 }
 
-export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
+export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete, onLeave, onEdit }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -19,6 +21,16 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onDelete) onDelete();
+  };
+
+  const handleLeave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onLeave) onLeave();
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onEdit) onEdit();
   };
 
   const formatDate = (dateString?: string) => {
@@ -61,6 +73,15 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
           ))}
         </ul>
       )}
+      {/* Edit button */}
+      {onEdit && (
+        <button 
+          onClick={handleEdit}
+          className="mt-4 bg-cyan-500 text-white border-none rounded px-3 py-1 cursor-pointer hover:bg-cyan-600 transition-colors mr-2"
+        >
+          Редактировать
+        </button>
+      )}
       {/* Delete button */}
       {onDelete && (
         <button 
@@ -68,6 +89,15 @@ export const Card: React.FC<CardProps> = ({ project, onSelect, onDelete }) => {
           className="mt-4 bg-red-500 text-white border-none rounded px-3 py-1 cursor-pointer hover:bg-red-600 transition-colors"
         >
           Удалить
+        </button>
+      )}
+      {/* Leave button */}
+      {onLeave && (
+        <button 
+          onClick={handleLeave}
+          className="mt-4 bg-amber-500 text-white border-none rounded px-3 py-1 cursor-pointer hover:bg-amber-600 transition-colors"
+        >
+          Выйти из проекта
         </button>
       )}
     </div>

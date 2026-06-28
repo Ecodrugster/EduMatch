@@ -52,6 +52,7 @@ type Member struct {
     ID        int64  `json:"id" db:"id"`
     ProjectID int64  `json:"project_id" db:"project_id"`
     UserID    int64  `json:"user_id" db:"user_id"`
+    Username  string `json:"username,omitempty" db:"username"`
     JoinedAt  time.Time `json:"joined_at" db:"joined_at"`
     DeletedAt *time.Time `json:"deleted_at,omitempty" db:"deleted_at"`
 }

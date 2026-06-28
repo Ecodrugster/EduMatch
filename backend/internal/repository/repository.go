@@ -49,6 +49,7 @@ type MemberRepo interface {
     Add(ctx context.Context, m *domain.Member) error
     ListByProject(ctx context.Context, projectID int64) ([]*domain.Member, error)
     IsMember(ctx context.Context, projectID, userID int64) (bool, error)
+    Leave(ctx context.Context, projectID, userID int64) error
 }
 
 type TaskRepo interface {

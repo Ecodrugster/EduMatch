@@ -28,7 +28,7 @@ export const updateApplicationStatus = async (data: { id: number; status: 'appro
   await axiosInstance.patch(`/protected/applications/${data.id}/status`, { status: data.status });
 };
 
-export const getMembersByProject = async (projectId: number): Promise<{ id: number; user_id: number; project_id: number }[]> => {
+export const getMembersByProject = async (projectId: number): Promise<{ id: number; user_id: number; project_id: number; username?: string }[]> => {
   const response = await axiosInstance.get(`/protected/members?project_id=${projectId}`);
   return response.data.members || [];
 };

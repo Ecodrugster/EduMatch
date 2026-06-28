@@ -36,3 +36,7 @@ func (s *MemberService) ListByProject(ctx context.Context, projectID int64) ([]*
 func (s *MemberService) IsMember(ctx context.Context, projectID, userID int64) (bool, error) {
     return s.repo.IsMember(ctx, projectID, userID)
 }
+
+func (s *MemberService) Leave(ctx context.Context, projectID, userID int64) error {
+    return s.repo.Leave(ctx, projectID, userID)
+}

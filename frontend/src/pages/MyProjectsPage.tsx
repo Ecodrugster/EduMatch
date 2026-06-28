@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '../components/Card';
 import { useToast } from '../components/ToastProvider';
-import { fetchMyProjects, createProject, deleteProject, getProject } from '../api/projects';
+import { fetchMyProjects, createProject, updateProject, deleteProject, getProject, leaveProject } from '../api/projects';
 import { getMyApplications, Application, updateApplicationStatus } from '../api/applications';
 import { Project } from '../types';
 import { ProjectModal } from '../components/ProjectModal';
@@ -72,6 +72,7 @@ const ApplicationItem = ({ app }: { app: Application }) => {
 
 export default function MyProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const { addToast } = useToast();
   const queryClient = useQueryClient();
   const { userId } = useAuth();
@@ -104,12 +105,36 @@ export default function MyProjectsPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, project }: { id: number; project: any }) => updateProject(id, project),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-projects'] });
+      setIsModalOpen(false);
+      setEditingProject(null);
+      addToast('Проект успешно обновлен', 'success');
+    },
+    onError: (err: Error) => {
+      addToast(err.message || 'Ошибка обновления', 'error');
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-projects'] });
       addToast('Проект удален', 'success');
     },
+  });
+
+  const leaveMutation = useMutation({
+    mutationFn: leaveProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-projects'] });
+      addToast('Вы успешно вышли из проекта', 'success');
+    },
+    onError: (err: any) => {
+      addToast(err.response?.data?.error || err.message || 'Ошибка выхода из проекта', 'error');
+    }
   });
 
   if (isLoading) return <div className="text-cyan-800 dark:text-cyan-100 text-center mt-8">Загрузка ваших проектов...</div>;
@@ -151,6 +176,10 @@ export default function MyProjectsPage() {
                 <Card 
                   key={project.id} 
                   project={project} 
+                  onEdit={() => {
+                    setEditingProject(project);
+                    setIsModalOpen(true);
+                  }}
                   onDelete={() => deleteMutation.mutate(project.id)} 
                 />
               ))
@@ -176,6 +205,7 @@ export default function MyProjectsPage() {
                 <Card 
                   key={project.id} 
                   project={project} 
+                  onLeave={() => leaveMutation.mutate(project.id)}
                 />
               ))
             ) : (
@@ -213,8 +243,18 @@ export default function MyProjectsPage() {
 
       <ProjectModal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSubmit={(data) => createMutation.mutate(data)} 
+        project={editingProject || undefined}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingProject(null);
+        }} 
+        onSubmit={(data) => {
+          if (editingProject) {
+            updateMutation.mutate({ id: editingProject.id, project: data });
+          } else {
+            createMutation.mutate(data);
+          }
+        }} 
       />
     </div>
   );

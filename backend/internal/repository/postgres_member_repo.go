@@ -34,9 +34,10 @@ func (r *postgresMemberRepo) Add(ctx context.Context, m *domain.Member) error {
 // ListByProject returns all members of a project.
 func (r *postgresMemberRepo) ListByProject(ctx context.Context, projectID int64) ([]*domain.Member, error) {
     const q = `
-        SELECT id, project_id, user_id, joined_at
-        FROM members
-        WHERE project_id = $1 AND deleted_at IS NULL;
+        SELECT m.id, m.project_id, m.user_id, u.username, m.joined_at
+        FROM members m
+        JOIN users u ON m.user_id = u.id
+        WHERE m.project_id = $1 AND m.deleted_at IS NULL;
     `
     rows, err := r.pool.Query(ctx, q, projectID)
     if err != nil {
@@ -47,7 +48,7 @@ func (r *postgresMemberRepo) ListByProject(ctx context.Context, projectID int64)
     var members []*domain.Member
     for rows.Next() {
         var m domain.Member
-        if err := rows.Scan(&m.ID, &m.ProjectID, &m.UserID, &m.JoinedAt); err != nil {
+        if err := rows.Scan(&m.ID, &m.ProjectID, &m.UserID, &m.Username, &m.JoinedAt); err != nil {
             return nil, err
         }
         members = append(members, &m)
@@ -69,4 +70,15 @@ func (r *postgresMemberRepo) IsMember(ctx context.Context, projectID, userID int
     var exists bool
     err := r.pool.QueryRow(ctx, q, projectID, userID).Scan(&exists)
     return exists, err
+}
+
+// Leave removes a user from a project by soft-deleting the member entry.
+func (r *postgresMemberRepo) Leave(ctx context.Context, projectID, userID int64) error {
+    const q = `
+        UPDATE members
+        SET deleted_at = $3
+        WHERE project_id = $1 AND user_id = $2 AND deleted_at IS NULL;
+    `
+    _, err := r.pool.Exec(ctx, q, projectID, userID, time.Now().UTC())
+    return err
 }
