@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://edumatch-ap9d.onrender.com/:path*"
+    }
+  ]
+}
