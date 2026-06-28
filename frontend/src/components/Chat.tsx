@@ -43,10 +43,11 @@ export const Chat: React.FC<ChatProps> = ({ projectId }) => {
   useEffect(() => {
     if (!accessToken || !projectId) return;
 
-    // We assume backend is running on the same domain or local port 8080.
-    // If you proxy through vite, vite proxy does NOT handle ws:// out of the box unless configured.
-    // However, configuring `ws://` directly to backend is easier:
-    const wsUrl = `ws://localhost:8080/protected/ws/${projectId}?token=${accessToken}`;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const wsUrl = isLocal
+      ? `ws://localhost:8080/protected/ws/${projectId}?token=${accessToken}`
+      : `wss://edumatch-ap9d.onrender.com/protected/ws/${projectId}?token=${accessToken}`;
+
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
