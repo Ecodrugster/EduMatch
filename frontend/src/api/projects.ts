@@ -16,7 +16,7 @@ export const getProject = async (id: number) => {
 };
 
 export const createProject = async (project: any) => {
-  const response = await axiosInstance.post('/protected/projects', project);
+  const response = await axiosInstance.post('/api/projects', project);
   return response.data;
 };
 

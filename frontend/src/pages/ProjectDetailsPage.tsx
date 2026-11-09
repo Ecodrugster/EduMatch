@@ -11,7 +11,9 @@ import { Project, User as UserType } from '../types';
 import { User, Calendar } from 'lucide-react';
 import { KanbanBoard } from '../components/KanbanBoard';
 import { DocumentsTab } from '../components/DocumentsTab';
-import { StudentMatchingTab } from '../components/StudentMatchingTab';
+import { RoleCandidatesTab } from '../components/RoleCandidatesTab';
+import { TeamVariantsTab } from '../components/TeamVariantsTab';
+import { PeerReviewTab } from '../components/PeerReviewTab';
 
 const ApplicationItem = ({ app, onStatusChange }: { app: any; onStatusChange: (id: number, status: 'approved' | 'rejected') => void }) => {
   const { data: user, isLoading } = useQuery<UserType>({
@@ -84,7 +86,7 @@ export default function ProjectDetailsPage() {
 
   const [message, setMessage] = useState('');
   const [hasApplied, setHasApplied] = useState(false);
-  const [tab, setTab] = useState<'chat' | 'tasks' | 'documents' | 'matching'>('chat');
+  const [tab, setTab] = useState<'candidates' | 'team_builder' | 'peer_review' | 'chat' | 'tasks' | 'documents'>('candidates');
 
   const { data: project, isLoading, isError } = useQuery<Project, Error>({
     queryKey: ['project', projectId],
@@ -154,7 +156,16 @@ export default function ProjectDetailsPage() {
           >
             Назад
           </button>
-          <h1 className="text-3xl font-bold text-slate-855 dark:text-slate-100 m-0 mb-2 tracking-tight">{project.title}</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-slate-855 dark:text-slate-100 m-0 tracking-tight">{project.title}</h1>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              project.status === 'completed'
+                ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+            }`}>
+              {project.status === 'completed' ? '✓ Завершён (Peer Review)' : 'Активен'}
+            </span>
+          </div>
           {(project.start_date || project.end_date) && (
             <div className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-semibold flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/60 w-fit px-2.5 py-1 rounded-full">
               <Calendar size={12} className="text-slate-400 dark:text-slate-500" />
@@ -225,52 +236,70 @@ export default function ProjectDetailsPage() {
           </div>
         )}
         
-        {/* Project Area for Members (Chat & Kanban) */}
-        {(isOwner || isMember) && (
-          <div className="mt-4 bg-white/80 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/80 p-6 rounded-2xl shadow-xl backdrop-blur-xl">
-            <div className="flex bg-slate-100 dark:bg-slate-950/40 rounded-xl p-1 border border-slate-200/30 dark:border-slate-850 gap-1 mb-6 max-w-fit">
-              <button
-                onClick={() => setTab('chat')}
-                className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
-                  tab === 'chat' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-              >
-                Чат
-              </button>
-              <button
-                onClick={() => setTab('tasks')}
-                className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
-                  tab === 'tasks' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-              >
-                Задачи
-              </button>
-              <button
-                onClick={() => setTab('documents')}
-                className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
-                  tab === 'documents' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
-              >
-                Документы
-              </button>
-              {isOwner && (
+        {/* Smart Team Builder & Project Workspace Area */}
+        <div className="mt-2 bg-white/80 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/80 p-6 rounded-2xl shadow-xl backdrop-blur-xl">
+          <div className="flex flex-wrap bg-slate-100 dark:bg-slate-950/40 rounded-xl p-1 border border-slate-200/30 dark:border-slate-850 gap-1 mb-6 max-w-fit">
+            <button
+              onClick={() => setTab('candidates')}
+              className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
+                tab === 'candidates' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              Кандидаты на роли
+            </button>
+            <button
+              onClick={() => setTab('team_builder')}
+              className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
+                tab === 'team_builder' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              Сборка команды (3 варианта)
+            </button>
+            <button
+              onClick={() => setTab('peer_review')}
+              className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
+                tab === 'peer_review' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              Peer Review
+            </button>
+            {(isOwner || isMember) && (
+              <>
                 <button
-                  onClick={() => setTab('matching')}
+                  onClick={() => setTab('chat')}
                   className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
-                    tab === 'matching' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                    tab === 'chat' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
-                  Подбор студентов
+                  Чат
                 </button>
-              )}
-            </div>
-
-            {tab === 'chat' && <Chat projectId={projectId} />}
-            {tab === 'tasks' && <div className="h-[600px]"><KanbanBoard projectId={projectId} /></div>}
-            {tab === 'documents' && <DocumentsTab projectId={projectId} isOwner={isOwner} currentUserId={userId} />}
-            {tab === 'matching' && isOwner && <StudentMatchingTab projectId={projectId} skillsRequired={project.skills_required} />}
+                <button
+                  onClick={() => setTab('tasks')}
+                  className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
+                    tab === 'tasks' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Задачи
+                </button>
+                <button
+                  onClick={() => setTab('documents')}
+                  className={`text-xs font-bold px-4 py-2 rounded-lg transition-all duration-300 ${
+                    tab === 'documents' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-sm border border-slate-200/20 dark:border-slate-800/40' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Документы
+                </button>
+              </>
+            )}
           </div>
-        )}
+
+          {tab === 'candidates' && <RoleCandidatesTab projectId={projectId} isOwner={isOwner} />}
+          {tab === 'team_builder' && <TeamVariantsTab projectId={projectId} isOwner={isOwner} />}
+          {tab === 'peer_review' && <PeerReviewTab project={project} isOwner={isOwner} />}
+          {tab === 'chat' && (isOwner || isMember) && <Chat projectId={projectId} />}
+          {tab === 'tasks' && (isOwner || isMember) && <div className="h-[600px]"><KanbanBoard projectId={projectId} /></div>}
+          {tab === 'documents' && (isOwner || isMember) && <DocumentsTab projectId={projectId} isOwner={isOwner} currentUserId={userId} />}
+        </div>
       </div>
     </div>
   );

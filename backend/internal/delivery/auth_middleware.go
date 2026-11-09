@@ -40,3 +40,26 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
         c.Next()
     }
 }
+
+// OptionalAuthMiddleware populates userID if token is provided, without blocking unauthenticated requests
+func OptionalAuthMiddleware(cfg *config.Config) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var token string
+        authHeader := c.GetHeader("Authorization")
+        if authHeader != "" {
+            parts := strings.SplitN(authHeader, " ", 2)
+            if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+                token = strings.TrimSpace(parts[1])
+            }
+        }
+        if token == "" {
+            token = c.Query("token")
+        }
+        if token != "" {
+            if userID, err := jwt_util.ValidateAccessToken(cfg, token); err == nil {
+                c.Set("userID", strconv.FormatInt(userID, 10))
+            }
+        }
+        c.Next()
+    }
+}

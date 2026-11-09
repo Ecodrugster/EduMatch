@@ -5,3 +5,5 @@ frontend/dist/
 .env
 backend/.env
 *.exe
+.neon
+.env.local

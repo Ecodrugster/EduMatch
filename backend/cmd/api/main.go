@@ -37,6 +37,7 @@ func main() {
     taskService := service.NewTaskService(repos.Task)
     notificationService := service.NewNotificationService(repos.Notification)
     projectDocumentService := service.NewProjectDocumentService(repos.ProjectDocument, repos.Member, repos.Project)
+    smartMatchingService := service.NewSmartMatchingService(repos.SmartMatching)
 
     hub := ws.NewHub(messageService)
     go hub.Run()
@@ -45,6 +46,33 @@ func main() {
     router.Static("/uploads", "./uploads")
     router.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
     
+    // Smart Team Builder handlers
+    smartHandler := delivery.NewSmartMatchingHandler(smartMatchingService)
+    optAuth := delivery.OptionalAuthMiddleware(cfg)
+
+    registerSmartRoutes := func(rg *gin.RouterGroup) {
+        rg.Use(optAuth)
+        rg.GET("/skills", smartHandler.ListSkills)
+        rg.POST("/projects", smartHandler.CreateProject)
+        rg.GET("/projects/:id/roles", smartHandler.GetProjectRoles)
+        rg.GET("/roles/:id/candidates", smartHandler.GetRoleCandidates)
+        rg.GET("/projects/:id/team-variants", smartHandler.GetTeamVariants)
+        rg.POST("/roles/:id/invites", smartHandler.CreateInvite)
+        rg.GET("/roles/:id/invites", smartHandler.ListInvitesByRole)
+        rg.POST("/invites/:id/accept", smartHandler.AcceptInvite)
+        rg.GET("/invites/my", smartHandler.ListMyInvites)
+        rg.GET("/projects/:id/team", smartHandler.GetTeamMembers)
+        rg.POST("/projects/:id/complete", smartHandler.CompleteProject)
+        rg.POST("/projects/:id/peer-reviews", smartHandler.CreatePeerReview)
+        rg.GET("/projects/:id/peer-reviews", smartHandler.ListPeerReviews)
+        rg.GET("/users/:id/profile", smartHandler.GetUserProfile)
+    }
+
+    // Register on /api (exact match for Lab 2 API spec)
+    registerSmartRoutes(router.Group("/api"))
+    // Also register on root group (for Vite proxy rewrite)
+    registerSmartRoutes(router.Group(""))
+
     authRouter := router.Group("/auth")
     authRouter.POST("/signup", func(c *gin.Context) { delivery.SignUpHandler(c, userService) })
     authRouter.POST("/login", func(c *gin.Context) { delivery.LoginHandler(c, userService) })

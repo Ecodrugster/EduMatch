@@ -22,8 +22,8 @@ type Config struct {
 var AppConfig *Config
 
 func Load() {
-    // Load .env 
-    _ = godotenv.Load()
+    // Load .env and .env.local files
+    _ = godotenv.Load(".env.local", ".env", "../.env.local", "../.env")
 
     getEnv := func(key, fallback string) string {
         if value, exists := os.LookupEnv(key); exists {
@@ -44,9 +44,12 @@ func Load() {
         }
         return v
     }
+
+    postgresDSN := getEnv("DATABASE_URL", getEnv("POSTGRES_DSN", "postgres://user:password@localhost:5432/edumatch?sslmode=disable"))
+
     cfg := &Config{
         ServerPort:            getEnv("SERVER_PORT", "8080"),
-        PostgresDSN:           getEnv("POSTGRES_DSN", "postgres://user:password@localhost:5432/edumatch?sslmode=disable"),
+        PostgresDSN:           postgresDSN,
         RedisAddr:             getEnv("REDIS_ADDR", "localhost:6379"),
         RedisPassword:         getEnv("REDIS_PASSWORD", ""),
         JWTSecret:             getEnv("JWT_SECRET", "supersecretkey"),

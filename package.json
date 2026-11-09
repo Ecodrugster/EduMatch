@@ -1,0 +1,17 @@
+{
+  "name": "edumatch",
+  "version": "1.0.0",
+  "description": "EduMatch - Smart Team Builder Platform",
+  "scripts": {
+    "build": "npm run build --prefix frontend && cd backend && go build ./cmd/api",
+    "test": "node --test matching/*.test.js",
+    "seed": "cd backend && go run ./cmd/seed/main.go"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@neon/config": "^1.13.0",
+    "@neon/env": "^2.1.0"
+  }
+}

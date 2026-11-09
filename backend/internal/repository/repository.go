@@ -85,6 +85,7 @@ func NewRepositories(pool *pgxpool.Pool) *Repos {
         Task:            NewPostgresTaskRepo(pool),
         Notification:    NewPostgresNotificationRepo(pool),
         ProjectDocument: NewPostgresProjectDocumentRepo(pool),
+        SmartMatching:   NewPostgresSmartMatchingRepo(pool),
     }
 }
 
@@ -97,4 +98,5 @@ type Repos struct {
     Task            TaskRepo
     Notification    NotificationRepo
     ProjectDocument ProjectDocumentRepo
+    SmartMatching   SmartMatchingRepo
 }
