@@ -7,6 +7,10 @@
       "destination": "https://edumatch-ap9d.onrender.com/:path*"
     },
     {
+      "source": "/uploads/:path*",
+      "destination": "https://edumatch-ap9d.onrender.com/uploads/:path*"
+    },
+    {
       "source": "/((?!api/|uploads/).*)",
       "destination": "/index.html"
     }

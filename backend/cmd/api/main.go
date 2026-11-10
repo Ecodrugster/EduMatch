@@ -23,7 +23,11 @@ func main() {
     pgPool := infra.InitPostgres(cfg)
     defer pgPool.Close()
     redisClient := infra.InitRedis(cfg)
-    defer func() { _ = redisClient.Close() }()
+    defer func() {
+        if redisClient != nil {
+            _ = redisClient.Close()
+        }
+    }()
 
    
     repos := repository.NewRepositories(pgPool)
