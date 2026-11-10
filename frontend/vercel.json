@@ -2,7 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://edumatch-ap9d.onrender.com/:path*"
+      "destination": "https://edumatch-1.onrender.com/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://edumatch-1.onrender.com/uploads/:path*"
     },
     {
       "source": "/((?!api/|uploads/).*)",
