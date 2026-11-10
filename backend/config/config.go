@@ -48,7 +48,7 @@ func Load() {
     postgresDSN := getEnv("DATABASE_URL", getEnv("POSTGRES_DSN", "postgres://user:password@localhost:5432/edumatch?sslmode=disable"))
 
     cfg := &Config{
-        ServerPort:            getEnv("SERVER_PORT", "8080"),
+        ServerPort:            getEnv("PORT", getEnv("SERVER_PORT", "8080")),
         PostgresDSN:           postgresDSN,
         RedisAddr:             getEnv("REDIS_ADDR", "localhost:6379"),
         RedisPassword:         getEnv("REDIS_PASSWORD", ""),

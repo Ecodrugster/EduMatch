@@ -230,3 +230,34 @@ type UserProfileDetail struct {
 	Skills       []UserSkill          `json:"skills"`
 	TrackRecord  []ProjectTrackRecord `json:"track_record"`
 }
+
+// ---- Curator Dashboard Models ----
+
+type CuratorMemberActivity struct {
+	UserID       int64  `json:"user_id"`
+	Username     string `json:"username"`
+	RoleTitle    string `json:"role_title"`
+	TasksDone    int    `json:"tasks_done"`
+	ReviewsGiven int    `json:"reviews_given"`
+	IsInactive   bool   `json:"is_inactive"`
+}
+
+type CuratorProjectHealth struct {
+	ProjectID     int64                   `json:"project_id"`
+	Title         string                  `json:"title"`
+	Status        string                  `json:"status"`
+	Deadline      *time.Time              `json:"deadline,omitempty"`
+	IsOverdue     bool                    `json:"is_overdue"`
+	TotalTasks    int                     `json:"total_tasks"`
+	OverdueTasks  int                     `json:"overdue_tasks"`
+	TeamSize      int                     `json:"team_size"`
+	Members       []CuratorMemberActivity `json:"members"`
+	PeerReviewsOK bool                    `json:"peer_reviews_ok"`
+}
+
+type CuratorDashboardData struct {
+	TotalProjects   int                    `json:"total_projects"`
+	ActiveProjects  int                    `json:"active_projects"`
+	OverdueProjects int                    `json:"overdue_projects"`
+	Projects        []CuratorProjectHealth `json:"projects"`
+}

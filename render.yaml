@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: edumatch-backend
+    runtime: go
+    plan: free
+    rootDir: backend
+    buildCommand: go build -o app ./cmd/api/main.go
+    startCommand: ./app
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REFRESH_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_TTL_MINUTES
+        value: 60
+      - key: REFRESH_EXPIRY_DAYS
+        value: 7
